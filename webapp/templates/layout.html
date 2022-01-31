@@ -1,0 +1,465 @@
+<!--
+#####################################
+# Author: Shehjar Sadhu.            #
+# Project: Care- Portal.            #
+# Date: December March 23rd 2021.   #
+#####################################
+-->
+<!doctype html>
+<html>
+
+<head>
+    <!-- Required meta tags -->
+    <link rel= "stylesheet" href= "{{ url_for('static',filename='styles/main.css') }}">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
+    rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Material+Icons|Material+Icons+Outlined|Material+Icons+Two+Tone|Material+Icons+Round|Material+Icons+Sharp" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100;0,200;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css" rel="stylesheet">
+    <title> Care-Portal </title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js "></script>
+    <script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<style>
+    h3 {
+    color: #282828;
+}
+
+p {
+    color: #282828;
+}
+
+.custom-body {
+    background: #18808B;
+    margin-bottom: 0ch;
+    margin-left: 0ch;
+    margin-top: 0ch;
+    margin-right: 0ch;
+    padding: 0ch
+}
+
+.custom-navbar {
+    background-color: #FFFFFF
+}
+
+.logo {
+    height: 45px;
+    width: 150px;
+}
+
+.text-color {
+    color: #282828
+}
+
+.text-color-register {
+    color: #cc7e00
+}
+
+.button-custom {
+    background-color: #EE8200;
+    border: 1px solid #EE8200;
+    color: #FFFFFF;
+}
+
+.button:hover {
+    background-color: #bd3b1f;
+    color: #f5e9cd;
+}
+
+.input-textbox {
+    background-color: #FFFFFF;
+    color: #cc7e00
+}
+
+.link-text-color {
+    color: #282828
+}
+
+.page-text {
+    color: #282828;
+}
+
+.center-img {
+    margin: auto;
+    width: 50%;
+    padding: -18px;
+    align: "center";
+    display: block;
+    margin-left: 25px;
+    margin-right: 25px;
+    width: 142%;
+}
+
+.profile-image {
+    height: 60px;
+    width: 60px;
+}
+
+.text-color-profile {
+    text-decoration-color: black;
+    color: black;
+}
+
+a:hover {
+    color: #EE8200;
+}
+
+.button-careportal {
+    transition-duration: 0.4s;
+    background-color: white;
+    color: #EE8200;
+    border: 2px solid #EE8200;
+    overflow: hidden;
+    white-space: nowrap;
+    display: inline-block;
+    text-overflow: ellipsis;
+}
+
+.button-careportal:hover {
+    background-color: #EE8200;
+    /* Green */
+    color: white;
+    border: 2px solid #EE8200;
+}
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+.switch input { 
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #18808B;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #18808B;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+* {box-sizing: border-box;}
+
+.img-zoom-container {
+  position: relative;
+}
+
+.img-zoom-lens {
+  position: absolute;
+  border: 1px solid #d4d4d4;
+  /*set the size of the lens:*/
+  width: 40px;
+  height: 40px;
+}
+
+.img-zoom-result {
+  border: 1px solid #d4d4d4;
+  /*set the size of the result div:*/
+  width: 300px;
+  height: 300px;
+}
+.patient_ids_div{
+    background-color: #FFFFFF;
+    transition-duration: 0.4s;
+    cursor: pointer;
+}
+
+.patient_ids_div:hover{
+    /* background-color: #EE8200; */
+    border-width: 4px;
+    border-color: #ff8f07;
+    /* border: 3px; */
+}
+
+/* Loading spinner in the patients view page */
+* {
+  margin: 0;
+  padding: 0;
+}
+
+.loader {
+  display: none;
+  /* position: absolute; */
+  transform: translate(-50%, -50%);
+}
+
+.loading {
+  border: 2px solid #ccc;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border-top-color: #18808B;
+  border-left-color: #18808B;
+  animation: spin 1s infinite ease-in;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+.nav_bar_links{
+  font-family: 'IBM Plex Sans', sans-serif;
+  /* color: #18808B; */
+
+}
+.nav_bar_links:hover{
+  color: #18808B;
+}
+#overlay {
+  position: fixed;
+  display: none;
+  width: 60%;
+  height: 60%;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #FFFFFF;
+  z-index: 2;
+  cursor: pointer;
+  align-items: center;
+  align-self: center;
+  margin-left: 30%;
+  margin-top: 15%;
+}
+table{
+  width: 500px;
+}
+table, th, td {
+  border: 1px solid black;
+  word-break: break-all;  /* MUST ADD THIS */
+
+}
+.nav_bar_links{
+  color: #18808B ;
+}
+.nav_bar_links:hover{
+  color: #EE8200;
+}
+
+
+
+.button_submit_form{
+  background-color: #EE8200; /* Green */
+  border: none;
+  color: white;
+  border-radius: 5%;
+  padding: 5px 12px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+}
+.button_submit_form:hover{
+  border-color: #18808B;
+}
+.box-effect1{
+  -webkit-box-shadow: 0 10px 6px -6px #777;
+     -moz-box-shadow: 0 10px 6px -6px #777;
+          box-shadow: 0 10px 6px -6px #777;
+}
+input[type=checkbox] {
+  display: none;
+}
+
+.container img {
+  margin: 100px;
+  transition: transform 0.25s ease;
+  cursor: zoom-in;
+}
+
+input[type=checkbox]:checked ~ label > img {
+  transform: scale(2);
+  cursor: zoom-out;
+}
+
+/*--------------------- for slide show-----------------------------------*/
+
+* {box-sizing:border-box}
+
+/* Slideshow container */
+.slideshow-container {
+  max-width: 1000px;
+  position: relative;
+  margin: auto;
+}
+
+/* Hide the images by default */
+.mySlides {
+  display: none;
+}
+
+/* Next & previous buttons */
+.prev, .next {
+  cursor: pointer;
+  position: absolute;
+  top: 50%;
+  width: auto;
+  margin-top: -22px;
+  padding: 16px;
+  color: white;
+  font-weight: bold;
+  font-size: 18px;
+  transition: 0.6s ease;
+  border-radius: 0 3px 3px 0;
+  user-select: none;
+}
+
+/* Position the "next button" to the right */
+.next {
+  right: 0;
+  border-radius: 3px 0 0 3px;
+}
+
+/* On hover, add a black background color with a little bit see-through */
+.prev:hover, .next:hover {
+  background-color: rgba(0,0,0,0.8);
+}
+
+/* Caption text */
+.text {
+  color: #f2f2f2;
+  font-size: 15px;
+  padding: 8px 12px;
+  position: absolute;
+  bottom: 8px;
+  width: 100%;
+  text-align: center;
+}
+
+/* Number text (1/3 etc) */
+.numbertext {
+  color: #f2f2f2;
+  font-size: 12px;
+  padding: 8px 12px;
+  position: absolute;
+  top: 0;
+}
+
+/* The dots/bullets/indicators */
+.dot {
+  cursor: pointer;
+  height: 15px;
+  width: 15px;
+  margin: 0 2px;
+  background-color: #bbb;
+  border-radius: 50%;
+  display: inline-block;
+  transition: background-color 0.6s ease;
+}
+
+.active, .dot:hover {
+  background-color: #717171;
+}
+
+/* Fading animation */
+.fade {
+  -webkit-animation-name: fade;
+  -webkit-animation-duration: 1.5s;
+  animation-name: fade;
+  animation-duration: 1.5s;
+}
+
+@-webkit-keyframes fade {
+  from {opacity: .4}
+  to {opacity: 1}
+}
+
+@keyframes fade {
+  from {opacity: .4}
+  to {opacity: 1}
+}
+</style>
+<body class="custom-body">
+    <header class="site-header">
+        <nav class="navbar navbar-dark custom-navbar">
+            <a class="navbar-brand" href="{{url_for('home')}}">
+                <img class="logo" src="/static/careportal_logo/CPlogo.png" />
+            </a>
+            <form class="form-inline">
+                {% if current_user.is_authenticated %}
+                <a class="nav_bar_links"href="{{url_for('view_patients')}}" style="margin-right: 2ch; text-align: center;font-size: 1.5ch; font-family: 'IBM Plex Sans', sans-serif;"> 
+                  Patient Dashboard </a>
+                <a class = "nav_bar_links" href="{{url_for('signout')}}" class="page-text " style=" margin-right: 2ch;font-family: 'IBM Plex Sans', sans-serif;">Sign out</a>
+                <div class=" page-text" style="font-family: 'IBM Plex Sans', sans-serif; color: #877E7E;"> Hello, {{ current_user.email }} </div>
+                {% else %}
+                <a class = "nav_bar_links" href="{{url_for('register_doctors')}}" class="page-text" style="margin-right: 2ch;font-family: 'IBM Plex Sans', sans-serif;">Register</a>
+                <a class = "nav_bar_links" href="{{url_for('login_doctors')}}" class="page-text" style="margin-right: 2ch;font-family: 'IBM Plex Sans', sans-serif;">Login</a> 
+                {% endif %}
+            </form>
+        </nav>
+    </header>
+
+    <main role="main" style="margin: 0;padding: 0;">
+        <!-- <div class="row justify-content-center" style="margin: 0; padding: 1ch;"> -->
+        {% with messages = get_flashed_messages(with_categories=true) %} {% if messages %} {% for category, message in messages %} {% endfor %} {% endif %} {% endwith %} {% block content %}{% endblock %}
+        <!-- </div> -->
+    </main>
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js "></script>
+    <script src=" https://code.jquery.com/jquery-3.3.1.slim.min.js " integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo " crossorigin="anonymous "></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js " integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1 " crossorigin="anonymous "></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js " integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM " crossorigin="anonymous "></script>
+</body>
+
+</html>
+
+

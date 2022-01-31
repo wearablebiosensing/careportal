@@ -1,0 +1,42 @@
+<!--
+#####################################
+# Author: Shehjar Sadhu.            #
+# Project: Kaya web scoring portal. #
+# Date: December 2019.              #
+# Updated by: La Raw Nov 2020.      #
+#####################################
+-->
+{% extends "layout.html" %}
+
+{%block content%}
+
+<div class="media">
+  <!-- <img class="rounded-circle account-img profile-image" src="{{ image_file }}"> -->
+  <div class="media-body">
+    <h5 class="mt-0"> Username: {{ current_user.name }}</h5>
+    Email: {{  current_user.email }}
+  </div>
+</div>
+
+<div class="row float-right">
+  <div class="card-layout-custom col-sm-6 float-left" >
+    <div class="card text-center" style="background-color:#f5e9cd;">
+      <div class="card-body">
+        <h5 class="card-title" >Number of patients to score</h5>
+        <p class="card-text">With supporting text below as a natural lead-in to additional content.
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="card-layout-custom col-sm-6 float-left">
+    <div class="card" style="background-color:#f5e9cd;">
+      <div class="card-body">
+        <h5 class="card-title">Number of patients in the study</h5>
+        <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+      
+      </div>
+    </div>
+  </div>
+</div>
+  
+{%endblock content%}

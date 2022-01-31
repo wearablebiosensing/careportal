@@ -1,0 +1,39 @@
+<!--
+#####################################
+# Author: Sabah Ummie.                   
+# Project: Careportal. 
+# Date: June 2021.              
+#####################################
+-->
+{% extends "layout.html" %} {%block content%}
+<div style="align-self: center; margin-top: 2ch; margin-left: 12ch; margin-right: 12ch;">
+    <div style="text-align: center; color: #FFFFFF;font-family: 'IBM Plex Sans', sans-serif;font-size: 25pt; margin-bottom: 5%; ">
+        Select the patient you would like to view the details for today.    
+    </div>
+    <div class="container">
+        <div class="card-columns">
+            {% for patient in patients %}
+            <div class="patient_ids_div card ">
+                <div class="card-body">
+                    <h5 class="card-title" style="font-family: 'IBM Plex Sans', sans-serif;"> Patient: {{patient.id}} </h5>
+                  <div class="loader" style="float: right;">
+                    <div class="loading">
+                    </div>
+                  </div>
+                  <a class=" " onclick="spinner()" href="{{ url_for( 'heart_rate_route' , patient_id=patient.id ) }}"  style="color:#919293 ;font-family: 'IBM Plex Sans', sans-serif; " >         
+                    Click to view details
+                </a>
+              </div>
+        </div>
+        {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+     function spinner() {
+        document.getElementsByClassName("loader")[0].style.display = "block";
+    }
+</script>
+
+{%endblock content%}

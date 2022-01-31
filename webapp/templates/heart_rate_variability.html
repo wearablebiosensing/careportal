@@ -1,0 +1,338 @@
+
+{% extends "layout.html" %} {%block content%}
+
+
+<div class="container-fluid">
+    <div class="row flex-nowrap">
+        <div class="col-auto col-md-3 col-xl-2 px-sm-2 px-0" style="background-color: #18808B ; border-radius: 3px; margin-top: 2%; margin-right: 1%;">
+            <div style="border-radius: 2%;background-color: #F8F8F8; margin-left: 1%;"> 
+                <div style="text-align: center; font-size: 3ch; font-family: 'IBM Plex Sans', sans-serif;">
+                    Patient: {{patientId}}
+                </div>
+                <div style="text-align: center; align-items: center;">
+                    <b> Patient Demographics  </b>
+                 </div>
+                 <div style="font-family: 'IBM Plex Sans', sans-serif; margin-left: 2%;">
+                    <b> Name:</b> {{family_name}} {{given_name}}<br>
+                    <b> Age:</b> 15 Years <br>
+                    <b> Gender:</b>  {{gender}}
+                </div>
+                </div>
+                <div style="margin-top: 3%; border-radius: 2%;background-color: #FFFFFF;"> 
+
+                    <div style="text-align: center; font-size: 1.5ch; font-family: 'IBM Plex Sans', sans-serif;">
+                        <b> Next Appointment Date:</b> "10/31/2021"
+                    </div> 
+                </div>
+                <div class="d-flex flex-column align-items-center align-items-sm-start px-3 pt-2 text-white min-vh-100" style="margin-top: 4%; background-color: #FFFFFF; border-radius: 2px;">
+                    <div style="text-align: center;align-items: center; font-size: 8pt; color: black; font-family: 'IBM Plex Sans', sans-serif;">
+                       <i> DISCLAIMER: You are viewing hypothesized data.</i>
+                    </div>
+                    <div style="text-align: center;align-items: center; margin-top: 5%; font-size: 12pt; color: black; font-family: 'IBM Plex Sans', sans-serif;">
+                        Wearable Device:
+                        <i>
+                        <!-- <a class = "nav_bar_links" href="https://support.microsoft.com/en-us/topic/what-can-i-still-do-with-my-microsoft-band-a2a59355-5be0-3441-9fff-4dc27bcbafb5"> -->
+                        Microsoft Smart Band
+                        <!-- </a> -->
+                        </i>
+                    </div>
+                    <div style="text-align: center;align-items: center; margin-top: 15%; margin-left: 8%; font-size: 16pt; color: black; font-family: 'IBM Plex Sans', sans-serif;">
+                        Select Measure:
+                    </div>
+                    <ul class="nav nav-pills flex-column mb-sm-auto mb-0 align-items-center align-items-sm-start" id="menu" style="margin-top: 10%;">
+                        <li class="nav-item">
+                            <a href="{{ url_for( 'heart_rate_route' , patient_id=patientId ) }}" class="nav-link px-0 align-middle" style="color: #18808B;font-family: 'IBM Plex Sans', sans-serif">
+                                <i>
+                                    <span class="material-icons-outlined">
+                                        timeline
+                                        </span>
+                                </i> <span class="nav_bar_links ms-1 d-none d-sm-inline" style="font-size: 15pt;">Heart Rate</span></a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for( 'heart_rate_variability_route', patient_id=patientId) }}" class=" nav-link px-0 align-middle" style="color:#EE8200;font-family: 'IBM Plex Sans', sans-serif" >
+                                <i>
+                                    <span class="material-icons-outlined">
+                                        favorite
+                                        </span>
+                                    </i> <span class="nav_bar_links ms-1 d-none d-sm-inline" style="color: #EE8200; font-size: 15pt;">Heart Rate Variability</span></a>
+                        </li>     
+                        <li>
+                            <a href="{{url_for( 'activity_levels', patient_id=patientId)}}" class="nav-link px-0 align-middle" style="color: #18808B;font-family: 'IBM Plex Sans', sans-serif">
+                                <i>
+                                    <span class="material-icons-outlined">
+                                        snowshoeing
+                                        </span>
+                                </i> 
+                                <span class="nav_bar_links ms-1 d-none d-sm-inline" style="font-size: 15pt;">Activity Levels</span>
+                            </a>
+                        </li>  
+                    </ul>
+                 
+                </div>
+        </div>
+        <div class="card" style="background-color: #FFFFFF; width: 80%; margin-top:2%;  overflow-y: scroll;">
+            <div class="card" style="width: 18rem;"id="overlay">
+                <div class="card-body">
+                    <a  class="card-link" href= "#"onclick="off()">
+                        Close 
+                    </a>
+                  <h5 class="card-title">Target Heart Rate Zones</h5>
+                  <h6 class="card-subtitle mb-2 text-muted">How did we calculate target heart rate zones?</h6>
+                  <p class="card-text"> We calculate target heart rate zones based on American Heart Association guidelines.</p>
+                  <a href="https://www.heart.org/en/healthy-living/fitness/fitness-basics/target-heart-rates" class="card-link">American Heart Association: Target Heart Rate</a>
+                </div>
+              </div>
+              <div class="container"style=" width: fit-content !important;">
+                <div class="box-effect1 card" style="width: 100%; height: 100%; align-self: center; margin-top: 2%;">
+                    <div id="daywise_max_bar" style=" position: relative;   
+                    font-family: 'IBM Plex Sans', sans-serif;">
+                        <script>
+                                var data_hr = {{hr_stats|tojson}};
+                                color = [];
+                                var intHrv = []
+                                // convert to int.
+                                for (let i = 0; i < data_hr["hrv"].length; i++) {
+                                    intHrv.push(Number((data_hr["hrv"][i]).toFixed(0))); // 6.7
+                                }
+                                console.log(intHrv);
+                                colorscale = [[0, 'red'],[1, '#18808B']];
+                                var trace1 = {
+                                    x:data_hr["dates"],
+                                    y: intHrv,
+                                    hovertemplate: '<br>x = Day: %{x}<br>' +
+                                                    'y = %{y:.f} ms' ,
+                                    showlegend: false,
+                                    type: 'bar',
+                                    text: intHrv.map(String),
+                                    textposition: 'auto',
+                                    marker: { color: "#18808B" },
+                                    };
+                                var layout = {
+                                    height:"500", 
+                                    width:"900",
+                                    legend: {
+                                        x: 0,
+                                        y: 1.0,
+                                        bgcolor: 'rgba(255, 255, 255, 0)',
+                                        bordercolor: 'rgba(255, 255, 255, 0)'
+                                    },
+                                    xaxis:{
+                                        title:{
+                                            text: "Day",
+                                            font: {
+                                                family: 'IBM Plex Sans"',
+                                                size: 20,
+                                                color: '#7f7f7f'
+                                            },
+                                    },
+                                    showticklabels: true,
+                                    type: 'category',
+                                    rangeslider:{
+                                            visible:true
+                                        },
+                                    linewidth:2, linecolor:'black',showticklabels: true,
+                                    
+                                    },
+                                    yaxis:{
+                                        title:{
+                                            text: "HRV in ms",
+                                            font: {
+                                                family: 'IBM Plex Sans',
+                                                size: 20,
+                                                color: '#7f7f7f'
+                                            }
+                                    },                                        
+                                    showticklabels:true,linewidth:2, linecolor:'black'
+                                    },
+                                    title:{
+                                        text:"Heart Rate Variability (HRV) per day",
+                                        font: {
+                                            family: 'IBM Plex Sans',
+                                            size: 30
+                                            }                               
+                                    }
+                                
+                                };
+                                var data = [trace1];
+                                var config = {
+                                    'displaylogo': false,
+                                    modeBarButtonsToRemove:['zoom2d', 'pan2d', 'select2d', 'lasso2d', 'zoomIn2d', 'zoomOut2d','toggleSpikelines','hoverClosestCartesian', 'hoverCompareCartesian','autoScale2d']};
+                                Plotly.newPlot('daywise_max_bar', data,layout,config);
+                        </script>
+                    </div>
+            </div> <!-- For Box effect plot container -->
+            </div>
+
+  
+        <div class="container" style=" width: fit-content !important;">
+            <div class="box-effect1 card" style="width: 100%; height: 100%; align-self: center; margin-top: 2%;">
+                <div id="hourly_plot_hrv" style=" position: relative; font-family: 'IBM Plex Sans', sans-serif;">
+                    <script>
+                            var data_hr = {{hourly_stats|tojson}};
+                            color = [];
+                            time_hr = [];
+                            var intHrv = []
+                                // convert to int.
+                                for (let i = 0; i < data_hr["hrv"].length; i++) {
+                                    intHrv.push(Number((data_hr["hrv"][i]).toFixed(0))); // 6.7
+                                }
+                            //Time annotation.
+                            for(var i = 0 ; i<data_hr["TimebyHour"].length ; i++){
+                                if (parseInt(data_hr["TimebyHour"][i]) >12){
+                                    annot = data_hr["TimebyHour"][i]+":00" + " PM";
+                                    time_hr.push(annot);
+                                }
+                                else if (parseInt(data_hr["TimebyHour"][i]) <12){
+                                    annot=data_hr["TimebyHour"][i] + ":00" + " AM";
+                                    time_hr.push(annot);
+                                }
+                                else if (parseInt(data_hr["TimebyHour"][i]) ==12){
+                                    annot=data_hr["TimebyHour"][i] + ":00" + " Noon";
+                                    time_hr.push(annot);
+                                }
+                            }
+                            var updatemenus=[
+                                        {
+                                            buttons: [
+                                                {
+                                                    args: [{'visible': [true, false, false]}],
+                                                    label: 'Max. HR',
+                                                    method: 'restyle',
+                                                    align: 'center'
+
+                                                },
+                                                {
+                                                    args: [{'visible': [false, true, false]}],
+                                                    label:'Average HR',
+                                                    method:'restyle',
+                                                    align: 'center'
+
+                                                },
+                                                {
+                                                    args: [{'visible': [false, false, true]}],
+                                                    label:'Min. HR',
+                                                    method:'restyle',
+                                                    align: 'center'
+                                                }
+                                            ],
+                                            direction: 'left',
+                                            pad: {'r': 10, 't': 10},
+                                            showactive: true,
+                                            type: 'buttons',
+                                            x: 0.1,
+                                            xanchor: 'left',
+                                            y: 1.1,
+                                            yanchor: 'top'
+                                        }
+                                    ]
+                            // for v in in hr_stats["max"]
+                            for (let i = 0; i < data_hr["max"].length; i++) {
+                                if (data_hr["max"][i]>174){
+                                    color.push(0);
+                                }
+                                else{
+                                    color.push(1);
+                                }
+                            }
+                            colorscale = [[0, 'red'],[1, 'teal']];
+                            var trace1 = {
+                                x: time_hr,//data_hr["dates"],
+                                y: intHrv, //data_hr["hrv"],
+                                mode: 'markers',
+                                type: 'scatter',
+                                name:"Maximum HR",
+                                hovertemplate: 'Hour: %{x} ' + 
+                                            '<br>%{y:.f} ms<br>' ,
+                                marker: { color:"teal",size: 15 }
+                            };
+                            var layout = {
+                                height:"500", 
+                                width:"900",
+                                xaxis:{
+                                    title:{
+                                        text: "Time of Day",
+                                        font: {
+                                            family: 'IBM Plex Sans"',
+                                            size: 20,
+                                            color: '#7f7f7f'
+                                        },
+                                },
+                                    linewidth:2, linecolor:'black',
+                                    showticklabels: true,
+                                    type: 'category',
+                                    rangeslider:{
+                                        visible:true
+                                    },
+                                },
+                                yaxis:{
+                                    title:{
+                                        text: "HRV in ms",
+                                        font: {
+                                            family: 'IBM Plex Sans',
+                                            size: 20,
+                                            color: '#7f7f7f'
+                                        }
+                                },  
+                                showticklabels: true,                     
+                                linewidth:2, linecolor:'black'
+                                },
+                                title:{
+                                    text:"Hourly HRV in ms",
+                                    font: {
+                                        family: 'IBM Plex Sans',
+                                        size: 30
+                                        }                               
+                                }
+                            
+                            };
+                            var data = [trace1];
+                            var config = {
+                                'displaylogo': false,
+                                modeBarButtonsToRemove:['zoom2d', 'pan2d', 'select2d', 'lasso2d', 'zoomIn2d', 'zoomOut2d','toggleSpikelines','hoverClosestCartesian', 'hoverCompareCartesian','autoScale2d']};
+                            Plotly.newPlot('hourly_plot_hrv', data,layout,config);
+                    </script>
+                </div>
+            </div> <!-- For Box effect plot container -->
+        </div><!-- For the top level container base container for plots card view-->
+      
+        </div> <!--- Base for white box -->
+</div>
+<script>
+    function notes_function() {
+        var x = document.getElementById("notes_tag");
+        if (x.style.display === "none") {
+            x.style.display = "block";
+        } else {
+            x.style.display = "none";
+        }
+    }
+    
+    // Take in a div ID to be toggled between interactive and image.
+    function heart_rate_toggle(divId){
+        varon = divId + "chart1";
+        varoff =  divId + "interactive";
+        console.log(divId);
+        console.log(varoff);
+        console.log(varon);
+        if(document.getElementById(varon).style.display == 'block'){
+            document.getElementById(varon).style.display = 'none';
+            document.getElementById(varoff).style.display = 'block';
+        }
+        else{
+            document.getElementById(varoff).style.display = 'none';
+            document.getElementById(varon).style.display = 'block'
+        }
+    }
+    
+    function on() {
+            document.getElementById("overlay").style.display = "block";
+    }
+    
+    function off() {
+        document.getElementById("overlay").style.display = "none";
+    }
+
+</script>
+
+
+{% endblock content %}

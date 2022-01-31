@@ -1,0 +1,45 @@
+<!--
+#####################################
+# Author: Shehjar Sadhu.            #
+# Project: Care- Portal.            #
+# Date: December March 23rd 2021.   #
+#####################################
+-->
+{% extends "layout.html" %} {%block content%}
+
+{% if current_user.is_authenticated %}
+    <img src="/static/careportal_logo/background.png" style="align-items: center;width: 100%; height: 100%;"> 
+
+        <h1 style="  position: absolute;
+            top: 40%;
+            left: 40%;
+            transform: translate(-40%, -40%); color: #FFFFFF;">
+        Welcome to Care-Portal
+    </h1>
+    <h6 style="  position: absolute;
+            top: 50%;
+            left: 42%;
+            transform: translate(-42%, -50%); color: #FFFFFF;"> 
+            Click on the Patient Dashboard link above to view patients data. 
+    </h6>
+
+{% else %}
+<!-- <div> Watch Video </div> -->
+<div class="container" style="position: relative;text-align: center;color: white;">
+</div>
+<img src="/static/careportal_logo/background.png" style="align-items: center;width: 100%; height: 100%;"> 
+<h1 style="  position: absolute;
+top: 40%;
+left: 40%;
+transform: translate(-40%, -40%); color: #FFFFFF;">
+    Welcome to Care-Portal
+</h1>
+<h6 style="  position: absolute;
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%); color: #FFFFFF;"> 
+    Please take a moment ro Register to CarePortal by clicking the Register link above.
+</h6>
+{% endif %}
+
+{%endblock content%}

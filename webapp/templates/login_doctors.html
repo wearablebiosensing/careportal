@@ -1,0 +1,56 @@
+<!--
+#####################################
+# Author: Shehjar Sadhu.            #
+# Project: Care- Portal.            #
+# Date: December March 23rd 2021.   #
+#####################################
+-->
+{% extends "layout.html" %}
+{%block content%}
+<!-- <img src="/static/careportal_logo/background.png" style=" float: left; width: 45%; height: 80%;margin-left: 0%;">  -->
+
+<div class="card" style="width: 70ch; height: 60ch; align-self: auto;margin-top: 2%; margin-right: 6%; margin-left: 28%;">
+    <form method= "POST",action="" style="margin-right: 6%;margin-left: 6%;">
+         {{form.hidden_tag()}}
+        <fieldset class ="form-group"  style="margin-top: 4%; ">
+            <legend class="boder-bottom mb-4" style="margin-right: 10%;">Login to Care Portal</legend>
+            <small class=" text-muted">
+                <div style="color: #9D9D9D;">         
+                    New to Care Portal? Register <a class =" link-text-color ml-2" href="{{url_for('register_doctors')}}"style="color: #18808B;">here </a>
+                </div>
+               </small>
+          <div class ="form-group">
+             {{form.email.label(class ="form-control-label")}}
+             {% if form.email.errors %}
+             {{ form.email(class="form-control form-control-lg is-invalid") }}
+             <div class="invalid-feedback">
+                 {% for error in form.email.errors %}
+                     <span>{{ error }}</span>
+                 {% endfor %}
+             </div>
+         {% else %}
+             {{ form.email(class=" input-textbox form-control form-control-lg") }}
+         {% endif %}
+     </div>
+            <div class ="form-group">
+
+             {{form.password.label(class ="form-control-label")}}
+        {% if form.password.errors %}
+             {{ form.password(class="input-textbox form-control form-control-lg is-invalid") }}
+             <div class="invalid-feedback">
+                 {% for error in form.password.errors %}
+                     <span>{{ error }}</span>
+                 {% endfor %}
+             </div>
+         {% else %}
+             {{ form.password(class="input-textbox form-control form-control-lg") }}
+         {% endif %}              
+        </div>
+        </fieldset>
+          <div class ="form-group" >
+                {{ form.submit(class ="button-custom btn")}}
+            </div>
+
+    </form>
+    </div>
+{%endblock content%}
