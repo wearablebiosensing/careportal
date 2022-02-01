@@ -6,7 +6,8 @@ A web based flask application for datavisvulization of wearable sensor data coll
 ![](/webapp/static/systemarch.png)
 
 ![](/webapp/static/database_Arch.png)
+For converting to JSON from Resampled HR data use convert_to_json.py file.
 
-#### CarePortal Demo
+##CarePortal Demo
 
 ![](/webapp/static/demo.gif)
