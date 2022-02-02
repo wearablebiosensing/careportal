@@ -18,7 +18,9 @@ from datetime import datetime
 import sys
 from distutils.dir_util import copy_tree
 import plotly
-
+from pydrive.auth import GoogleAuth
+from pydrive.drive import GoogleDrive
+import pandas as pd
 ##################################################################
 # Calculates MAX, MIN, Average hr Statistics by Day
 # Takes in the 
@@ -165,10 +167,32 @@ def convert_to_json_hr_stats_hourly(patient_ids):
     #     with open(r+"PatientID_"+ str(patient_id)+"timming_"+str(patient_id)+"activity_levels.json", 'w') as outfile:
     #         json.dump(json_Act_levels, outfile)
 
-
+def google_drive_file_read():
+    gauth = GoogleAuth()
+    gauth.LocalWebserverAuth() # client_secrets.json need to be in the same directory as the script
+    drive = GoogleDrive(gauth)
+    seperate_Data_folder_id = "1lkNmQHD4Qc-Rz1htsbED8TuPuT1U93Z0"
+    query = seperate_Data_folder_id +"in parents and trashed=false"
+    print("query = ",type(query))
+    fileList = drive.ListFile({'q':query }).GetList()
+    # ED EAR - HR Datafolder - List of all HR files using google drive folder.
+    print(fileList)
+    for patient_folder in fileList:
+        # patient_folder['title'] => PatientID_130
+        #print("file_title: ",patient_folder['title'],"\n file_id: ",patient_folder['id'],type(patient_folder['id']))
+        if patient_folder['title'].startswith("Pat"):
+            print("------------------------------IF CONDITION----------------------------------------")
+            print("title: - ",patient_folder['title'],"id: - ",patient_folder['id']) 
+            data_files = drive.ListFile({
+                'q': "'{patient_folder['id']}' in parents and trashed=false"
+                }).GetList()
+            print("data_files: ", data_files["id"])
+        # for i in data_files:
+        #     print("data_file " , i)
 if __name__ == "__main__":
     patient_ids = [27,34,52,53,75,80,88,80,90,106,118,129,131]
     ts_list = ['00' ,'01' ,'02' ,'03' ,'04' ,'05', '06' ,'07', '08' ,'09', '10' ,'11' ,'12' ,'13', '14', '15', '16' ,'17', '18' ,'19', '20', '21','22','23']
-    convert_to_json_hr_stats(patient_ids)
-    convert_to_json_hr_stats_hourly(patient_ids)
-    convert_to_json_activity_levels(patient_ids,ts_list)
+    google_drive_file_read()
+    # convert_to_json_hr_stats(patient_ids)
+    # convert_to_json_hr_stats_hourly(patient_ids)
+    # convert_to_json_activity_levels(patient_ids,ts_list)
