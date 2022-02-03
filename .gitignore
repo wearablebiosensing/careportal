@@ -1,7 +1,6 @@
 .DS_store
 ..
 .__
-/webapp/
 /webapp/static/plotlycharts 
 /webapp/.DS_Store
 /webapp/__pycache__
