@@ -15,12 +15,12 @@
             {% for patient in patients %}
             <div class="patient_ids_div card ">
                 <div class="card-body">
-                    <h5 class="card-title" style="font-family: 'IBM Plex Sans', sans-serif;"> Patient: {{patient.id}} </h5>
+                    <h5 class="card-title" style="font-family: 'IBM Plex Sans', sans-serif;"> Patient: {{patient}} </h5>
                   <div class="loader" style="float: right;">
                     <div class="loading">
                     </div>
                   </div>
-                  <a class=" " onclick="spinner()" href="{{ url_for( 'heart_rate_route' , patient_id=patient.id ) }}"  style="color:#919293 ;font-family: 'IBM Plex Sans', sans-serif; " >         
+                  <a class=" " onclick="spinner()" href="{{ url_for( 'heart_rate_route' , patient_id=patient ) }}"  style="color:#919293 ;font-family: 'IBM Plex Sans', sans-serif; " >         
                     Click to view details
                 </a>
               </div>

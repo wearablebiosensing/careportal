@@ -26,6 +26,9 @@ from dash.dependencies import Input, Output
 import plotly.express as px
 import plotly.graph_objects as go
 from utils.hr_features import *
+from pydrive.auth import GoogleAuth
+from pydrive.drive import GoogleDrive
+from googleapiclient.http import MediaFileUpload
 import time
 app = Flask(__name__)
 app.config['SECRET_KEY'] ="Kaya"
@@ -47,6 +50,11 @@ bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 root_pi = "/var/www/html/web"
+
+gauth = GoogleAuth()
+gauth.LocalWebserverAuth() 
+drive = GoogleDrive(gauth)
+
 p_27 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
 p_34 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 p_52 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
@@ -166,90 +174,85 @@ def signout():
     logout_user()
     return redirect(url_for("home"))
 
+def get_num_patients(seperate_Data_folder_id):
+    # gauth = GoogleAuth()
+    # gauth.LocalWebserverAuth() 
+    # drive = GoogleDrive(gauth)
+    query = f"'{seperate_Data_folder_id}' in parents and trashed=false"
+    print("query = ",type(query))
+    fileList = drive.ListFile({'q':query }).GetList()
+    count_patient = []
+    print("NUMBER OF AVALIABLE PATIENTS ===",len(fileList))
+    for i in fileList:
+        if i['title'].startswith("Pat"):
+            print("FILETITLE- ",int(i['title'].split("_")[1]))
+            count_patient.append(int(i['title'].split("_")[1]))
+    return count_patient
 @app.route('/view_patients')
 @login_required
 def view_patients():
     patients = user_patient.query.order_by(user_patient.id.asc())
-    return render_template('patients.html', patients = patients[:])
+    seperate_Data_folder_id = '1lkNmQHD4Qc-Rz1htsbED8TuPuT1U93Z0'
+    count_patient = get_num_patients(seperate_Data_folder_id)
+    print("patients[:]",patients[:])
+    print("count_patient",count_patient)
+    return render_template('patients.html', patients = count_patient)
+def google_drive_file_read(seperate_Data_folder_id,patientID):
+
+    query = f"'{seperate_Data_folder_id}' in parents and trashed=false"
+    print("query = ",type(query))
+    fileList = drive.ListFile({'q':query }).GetList()
+    # ED EAR - HR Datafolder - List of all HR files using google drive folder.
+    print("NUMBER OF AVALIABLE PATIENTS ===",len(fileList))
+    for patient_folder in fileList:
+        # patient_folder['title'] => PatientID_130
+        if patient_folder['title'].startswith("Pat"): # If it starts with Pat only.
+            #print("------------------------------IF CONDITION----------------------------------------")
+            #print("title: - ",patient_folder['title'],"id: - ",patient_folder['id']) 
+            if patient_folder["title"].startswith("PatientID_" + patientID):
+                print("patientID ======",patientID)
+                data_files = drive.ListFile({
+                    'q': f"'{patient_folder['id']}' in parents and trashed=false"
+                    }).GetList()
+                # Gets each file in the SeperateData/PatientID_130/ filder Eg:- HR_all.csv, HR_SDNN.csv etc..
+                for sensor_file in data_files:
+                    # sensor_file["title"] = PatientID_146_hr_stats_daily.json
+                    if sensor_file["title"].endswith("daily.json"): 
+                        URL = f"https://drive.google.com/file/d/{sensor_file['id']}/view?usp=sharing"
+                        path = 'https://drive.google.com/uc?export=download&id='+URL.split('/')[-2]
+                        df = pd.read_json(path)
+                        return df
+
+
 ##########################################################################
 # Parameters - patient ID.
-# Displays MAX,MIN heart rate data on an hourly and daily basis.
+# Displays MAX, MIN heart rate data on an hourly and daily basis.
 ##########################################################################
 @app.route('/patient/<int:patient_id>/overall', methods=['GET', 'POST'])
 @login_required
 def heart_rate_route(patient_id,methods=['GET', 'POST']):
-     patientId = user_patient.query.get(patient_id)
-     print("Overall Patient Progress: ",patient_id)
-     print("Before from DB Completion",patientId.id)
-     patientId = patientId.id
-     if patientId == 1:
-         patientId = 27
-     elif patientId  == 2:
-         patientId = 34
-     elif patientId  == 3:
-         patientId = 52
-     elif patientId  == 4:
-         patientId = 53
-     elif patientId  == 5:
-         patientId = 75
-     elif patientId  == 6:
-         patientId = 80
-     elif patientId  == 7:
-         patientId = 88
-     elif patientId  == 8:
-         patientId = 90
-     elif patientId  == 9:
-         patientId = 106   
-     elif patientId  == 10:
-         patientId = 118    
-     elif patientId  == 10:
-         patientId = 129    
-     elif patientId  == 11:
-         patientId = 131  
-     elif patientId  == 12:
-         patientId = 584
-     print("After Completion",patientId)
-     date_id_list = get_dates(patientId)
      start_time_plot = time.time()
-     bar_plot_list = []
-     hr_zone_fig_list_json = []
-     labels_matrix = []
-     values_matrix = []
-     specs_matrix =[]
-     fig_bar_list = []
      form = DateDropDown_form()
-     # Gets the unique avaliable dates from a patient.
-     print("date list: ",date_id_list,"Length dates: ",len(date_id_list))
-     print("selected date:  ",form.date.data)
-     colors= ["#a8fa74","#5eda38","#fbda35","#f17304","#fc978d","#eb250e","#b41904"]
-     json_fig_l = []
-     stats_hr_json_path =  "./static/plotlycharts/PatientID_" + str(patientId)+"/hr_stats_pid_" + str(patientId) + ".json"                
-     hourly_stats =  "./static/plotlycharts/PatientID_"+str(patientId) + "/hr_stats_hour_pid_"+ str(patientId) +".json" 
-     with open(stats_hr_json_path, "r") as json_file:
-         hr_stats = json.load(json_file)
-    #  print(hourly_stats)
+     seperate_Data_folder_id = '1lkNmQHD4Qc-Rz1htsbED8TuPuT1U93Z0'
+     # COLUMNS = pid, dates, mean, min, max, std, hrv
+     df = google_drive_file_read(seperate_Data_folder_id,str(patient_id))
+     hr_stats_daily = {
+         "pid": df["pid"][0],
+         "min": df["min"].tolist(),
+         "max": df["max"].tolist(),
+         "std": df["std"].tolist(),
+         "mean": df["mean"].tolist(),
+         "hrv":df["hrv"].tolist(),
+         "dates": df["dates"].tolist()
+     }
+     hourly_stats =  "./static/plotlycharts/PatientID_"+str(patient_id) + "/hr_stats_hour_pid_"+ str(patient_id) +".json" 
      with open(hourly_stats, "r") as json_file:
          hourly_stats = json.load(json_file)
-    #  print("hourly_stats: ",hourly_stats[0])
-     max_dates_hr_list = []
-     min_dates_hr_list = []
-     average_dates_hr_list = []
-     print("Length of dates",hr_stats["dates"])
-     for i in range(0,len(hr_stats["dates"])):
-         max_d = hr_stats["max"][i]
-         min_d = hr_stats["min"][i]
-         avg_d = hr_stats["mean"][i]
-         max_dates_hr_list.append(max_d)
-         min_dates_hr_list.append(min_d)
-         average_dates_hr_list.append(avg_d)
-     print("Date List: ",len(date_id_list))
-    
-     return render_template("heart_rate.html",patientId=patientId,
-                            form =form,date_id_list=date_id_list,
-                            hr_stats = hr_stats,
+     return render_template("heart_rate.html",patientId=patient_id,
+                            form =form,date_id_list=df["dates"].tolist(),
+                            hr_stats = hr_stats_daily,
                             hourly_stats = hourly_stats[0],
-                            selected_date = str(form.date.data),
-                            all_zipped = zip(max_dates_hr_list,min_dates_hr_list,date_id_list,average_dates_hr_list))
+                            selected_date = str(form.date.data))
 
 # Displays Activity Level Data for patient selected. Get the patient ID from route.
 ##########################################################################
