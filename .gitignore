@@ -1,5 +1,6 @@
 .DS_store
 ..
+.DS
 .__
 /webapp/static/plotlycharts 
 /webapp/.DS_Store
