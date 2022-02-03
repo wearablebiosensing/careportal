@@ -2,6 +2,7 @@
 ..
 .DS
 .__
+/DataAnalysis/client_secrets.json
 /webapp/static/plotlycharts 
 /webapp/.DS_Store
 /webapp/__pycache__
