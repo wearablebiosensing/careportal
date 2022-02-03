@@ -46,6 +46,7 @@ def unique_time_stamps(df):
         #print("TS: ",val,val[11:13])
         time_stamp_list.append(val[11:13])
     return np.unique(np.array(time_stamp_list))
+
 # Returns a list of time in secods per activity bucket.
 def calculate_time_seconds_each_act(hr):
     total_time_each_bucket_seconds = []
@@ -93,50 +94,6 @@ def calculate_time_seconds_each_act(hr):
         str_text_time_mins.append(str(int(i)) + " Minutes")
     return total_time_each_bucket_seconds,str_text_time_mins,bucket_info_list
 
-##################################################################
-# Calculates MAX, MIN, Average hr Statistics by Day
-# Takes in the 
-##################################################################
-def convert_to_json_hr_stats(patient_ids):
-    
-    for patient_id in patient_ids:
-        print("------------------ For Patient ID " + str(patient_id) + "------------------")
-        # GET PATIENT ID RELATED DATES.
-        date_id_list = get_dates(patient_id)
-        mean_hr_l = []
-        max_hr_l = []
-        min_hr_l = []
-        std_hr_l = []
-        hrv_l = []
-        # ITERATE OVER EACH DATE FILE.
-        for i in date_id_list:
-            path = "/Users/shehjarsadhu/Desktop/UniversityOfRhodeIsland/Graduate/ResearchWBL/My_Thesis/careportal-flaskapp/care-portal-thesis-sub/PatientID_" +str(patient_id) + "/HR_ACT_Resample_40Hz_PID_" + str(patient_id) + "_" + str(i) + "_Date_ID_HR.csv"
-            df_hr_zone = pd.read_csv(path)
-            # calculate max, min, std,avg, hrv and create json datastructure for it.
-            mean_hr = round(df_hr_zone['Heart.Rate..BPM.'].mean(),2)
-            max_hr = int(max(df_hr_zone['Heart.Rate..BPM.']))
-            min_hr = int(min(df_hr_zone['Heart.Rate..BPM.']))
-            std_hr = round(df_hr_zone['Heart.Rate..BPM.'].std(),2)
-            hrv = np.sqrt((((60000/df_hr_zone['Heart.Rate..BPM.']).diff())**2).sum())
-            mean_hr_l.append(mean_hr)
-            max_hr_l.append(max_hr)
-            min_hr_l.append(min_hr)
-            std_hr_l.append(std_hr)
-            hrv_l.append(hrv)
-
-        json_27_stats = {
-            "pid": patient_id,
-            "dates": date_id_list,
-            "mean":mean_hr_l,
-            "min": min_hr_l,
-            "max": max_hr_l,
-            "std": std_hr_l,
-            "hrv":hrv_l,
-        }
-        print("HR STATS:- ",json_27_stats)
-    ############################################# FOR FILE WRITES IN JSON FORMAT.############################################
-    #     with open('/Users/shehjarsadhu/Desktop/UniversityOfRhodeIsland/Graduate/ResearchWBL/My_Thesis/careportal-flaskapp/static/plotlycharts/PatientID_'+ str(patient_id) + '/hr_stats_pid_'+ str(patient_id) +'.json', 'w') as f:
-    #         json.dump(json_27_stats, f)
 
 ##################################################################
 # Calculates hourly Activity levels.
@@ -157,6 +114,7 @@ def calculate_hr_based_activity_levels(hr):
     for i in day_pandas["Dates"]:
         json_Act_levels[i] = day_pandas.iloc[i].to_list()
     return json_Act_levels
+
 def daily_hr_stats(df):
     #print("Unique Date IDs ----- " ,df["Date"].unique())
     # date_id_list = get_dates(patient_id)
@@ -191,12 +149,12 @@ def daily_hr_stats(df):
         }
     return json_27_stats
     
-##################################################################
-# Calculates MAX, MIN, Average hr Statistics by Hour
-##################################################################
-
 #######################################################################################
-# Writes a json file to local computer and then uploads the file to google drive.
+# Parameters - Takes in a json data structure {json_27_stats}, 
+#   patient_folder i.e the google drive id for the patient folder, 
+#   json_filename i.e."_hr_stats_daily.json
+# Writes a json file to local computer and 
+# then uploads the file to google drive for all 116 patients.
 #######################################################################################
 def upload_file_google_drive(json_27_stats,patient_folder,json_filename):
     # 1. Write file to local folder.
@@ -207,7 +165,10 @@ def upload_file_google_drive(json_27_stats,patient_folder,json_filename):
     # 3. Read file and set it as the content of this instance.
     gfile.SetContentFile("/Users/shehjarsadhu/Desktop/SeperateDataJSON/" +patient_folder['title'] + '_hr_stats_daily.json')
     gfile.Upload() # Upload the file.
-
+#########################################################################################################
+# google_drive_file_read(seperate_Data_folder_id)
+# parameters - seperate_Data_folder_id -> root data folder id such as /SeperateData sharable ID.
+#########################################################################################################
 def google_drive_file_read(seperate_Data_folder_id):
     gauth = GoogleAuth()
     gauth.LocalWebserverAuth() 
@@ -226,24 +187,23 @@ def google_drive_file_read(seperate_Data_folder_id):
             data_files = drive.ListFile({
                 'q': f"'{patient_folder['id']}' in parents and trashed=false"
                 }).GetList()
-            # Gets each file in the PatientID_130/ filder Eg:- HR_all.csv, HR_SDNN.csv etc..
+            # Gets each file in the SeperateData/PatientID_130/ filder Eg:- HR_all.csv, HR_SDNN.csv etc..
             for sensor_file in data_files:
                 if sensor_file["title"].startswith("HR.csv"): 
-                    print("sensor_file: ", sensor_file["title"],sensor_file["id"])
                     URL = f"https://drive.google.com/file/d/{sensor_file['id']}/view?usp=sharing"
                     path = 'https://drive.google.com/uc?export=download&id='+URL.split('/')[-2]
-                    print("URL = \n",URL)
-                    print("PATH = \n",path)
                     df = pd.read_csv(path)
-                    #json_27_stats = daily_hr_stats(df)
-                    #upload_file_google_drive(json_Act_levels,patient_folder,"_hr_stats_daily.json")
-                    json_Act_levels = calculate_hr_based_activity_levels(df)
-                    print(json_Act_levels)
+                    # 1. Creates json file for daily stats for each date seperately.
+                    # json_27_stats = daily_hr_stats(df)
+                    # 2. Upload the json file to google drive.
+                    # upload_file_google_drive(json_Act_levels,patient_folder,"_hr_stats_daily.json")
+                    # 1. Create json_Act_levels for hourly and daily #mins.
+                    # json_Act_levels = calculate_hr_based_activity_levels(df)
+                    # print(json_Act_levels)
+                    # 2. Upload the json file created to google drive. 
                     #upload_file_google_drive(json_Act_levels,patient_folder,"activity_levels.json")
 
-
 if __name__ == "__main__":
-    patient_ids = [27,34,52,53,75,80,88,80,90,106,118,129,131]
     ts_list = ['00' ,'01' ,'02' ,'03' ,'04' ,'05', '06' ,'07', '08' ,'09', '10' ,'11' ,'12' ,'13', '14', '15', '16' ,'17', '18' ,'19', '20', '21','22','23']
     seperate_Data_folder_id = '1lkNmQHD4Qc-Rz1htsbED8TuPuT1U93Z0'
     google_drive_file_read(seperate_Data_folder_id)
