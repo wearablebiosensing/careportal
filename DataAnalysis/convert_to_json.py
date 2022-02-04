@@ -244,7 +244,6 @@ def google_drive_file_read(seperate_Data_folder_id):
             for sensor_file in data_files:
                     # If already calculated then pass do nothing.
                 print("sensor_file==",sensor_file["title"])
-        
                 if sensor_file["title"].startswith("HR.csv"): 
                     if sensor_file["title"].endswith("stats_hourly.json"):
                             print("SKIP THIS...... ")
