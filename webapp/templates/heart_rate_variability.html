@@ -13,9 +13,9 @@
                     <b> Patient Demographics  </b>
                  </div>
                  <div style="font-family: 'IBM Plex Sans', sans-serif; margin-left: 2%;">
-                    <b> Name:</b> {{family_name}} {{given_name}}<br>
+                    <b> Name:</b> Jane Doe <br><!-- <b> Name:</b> Jane Doe <br> {{family_name}} {{given_name}} -->
                     <b> Age:</b> 15 Years <br>
-                    <b> Gender:</b>  {{gender}}
+                    <b> Gender:</b> Female<!-- <b> Gender:</b>  {{gender}} -->
                 </div>
                 </div>
                 <div style="margin-top: 3%; border-radius: 2%;background-color: #FFFFFF;"> 
@@ -41,7 +41,7 @@
                     </div>
                     <ul class="nav nav-pills flex-column mb-sm-auto mb-0 align-items-center align-items-sm-start" id="menu" style="margin-top: 10%;">
                         <li class="nav-item">
-                            <a href="{{ url_for( 'heart_rate_route' , patient_id=patientId ) }}" class="nav-link px-0 align-middle" style="color: #18808B;font-family: 'IBM Plex Sans', sans-serif">
+                            <a href="{{ url_for( 'heart_rate_route' , patient_id=patient_id ) }}" class="nav-link px-0 align-middle" style="color: #18808B;font-family: 'IBM Plex Sans', sans-serif">
                                 <i>
                                     <span class="material-icons-outlined">
                                         timeline
@@ -49,7 +49,7 @@
                                 </i> <span class="nav_bar_links ms-1 d-none d-sm-inline" style="font-size: 15pt;">Heart Rate</span></a>
                         </li>
                         <li>
-                            <a href="{{ url_for( 'heart_rate_variability_route', patient_id=patientId) }}" class=" nav-link px-0 align-middle" style="color:#EE8200;font-family: 'IBM Plex Sans', sans-serif" >
+                            <a href="{{ url_for( 'heart_rate_variability_route', patient_id=patient_id) }}" class=" nav-link px-0 align-middle" style="color:#EE8200;font-family: 'IBM Plex Sans', sans-serif" >
                                 <i>
                                     <span class="material-icons-outlined">
                                         favorite
@@ -57,7 +57,7 @@
                                     </i> <span class="nav_bar_links ms-1 d-none d-sm-inline" style="color: #EE8200; font-size: 15pt;">Heart Rate Variability</span></a>
                         </li>     
                         <li>
-                            <a href="{{url_for( 'activity_levels', patient_id=patientId)}}" class="nav-link px-0 align-middle" style="color: #18808B;font-family: 'IBM Plex Sans', sans-serif">
+                            <a href="{{url_for( 'activity_levels', patient_id=patient_id)}}" class="nav-link px-0 align-middle" style="color: #18808B;font-family: 'IBM Plex Sans', sans-serif">
                                 <i>
                                     <span class="material-icons-outlined">
                                         snowshoeing

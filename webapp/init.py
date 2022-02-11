@@ -57,8 +57,6 @@ login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 root_pi = "/var/www/html/web"
 
-
-
 gauth = GoogleAuth()
 gauth.LocalWebserverAuth() 
 drive = GoogleDrive(gauth)
@@ -292,72 +290,13 @@ def heart_rate_variability_route(patient_id):
     graphs = []
     day = []
     print("patient(): patient_id",patient_id)
-    patientId = user_patient.query.get(patient_id)
-    #path =  os.getcwd()  + patientId.hr_path
-    print("patient(): From DB Before Conversion",patientId.id)
-    patientId = patientId.id
-    if patientId == 1:
-        patientId = 27
-    elif patientId  == 2: 
-        patientId = 34
-    elif patientId  == 3:
-        patientId = 52
-    elif patientId  == 4:
-        patientId = 53
-    elif patientId  == 5:
-        patientId = 75
-    elif patientId  == 6:
-        patientId = 80
-    elif patientId  == 7:
-        patientId = 88
-    elif patientId  == 8:
-        patientId = 90
-    elif patientId  == 9:
-        patientId = 106   
-    elif patientId  == 10:
-        patientId = 118    
-    elif patientId  == 10:
-        patientId = 129    
-    elif patientId  == 11:
-        patientId = 131  
-    elif patientId  == 12:
-        patientId = 584   
-    print("patient(): After Conversion",patientId)
-    date_id_list = get_dates(patientId)
-    # Unique dates from a particular patient.
-    dates = date_id_list
-    # wtf forms displays the forms on the web page
-    form = DateDropDown_form()
-    # Gets the unique avaliable dates from a patient.
-    form.date.choices = [(date) for date in dates]
-    #print("date list: ",dates)
-    #print("selected date:  ",form.date.data)
-    # Read from plotly json file and put it in. 
-    stats_hr_json_path ="./static/plotlycharts/PatientID_"+ str(patientId)+"/hr_stats_pid_" + str(patientId) +".json" #"./static/plotlycharts/PatientID_"+str(27) + "/hr_stats_pid_" + str(27) + ".json"                
-    patient_resuorce =  "./static/hl7_FHIR/patient_resource.json"
-    with open(stats_hr_json_path, "r") as json_file:
-        hr_stats = json.load(json_file)
-    with open(patient_resuorce, "r") as json_file:
-        patient_resuorce_json = json.load(json_file)
-    print("patient_resuorce_json: \n",patient_resuorce_json["name"])
-    family_name = patient_resuorce_json["name"][0]["family"]
-    given_name  = patient_resuorce_json["name"][0]["given"][0]
-    gender = patient_resuorce_json["gender"]
-    max_d = hr_stats["max"][int(form.date.data)]
-    min_d = hr_stats["min"][int(form.date.data)]
-    std_d = round(hr_stats["std"][int(form.date.data)],2)
-    mean_d = round(hr_stats["mean"][int(form.date.data)],2)
-
-    file_name_hr = "plotlycharts/pid_27_did_"+ str(form.date.data) +"raw_hr.png"
-    print("file_name_hr: ",file_name_hr)
-    stats_hr_json_path =  "./static/plotlycharts/PatientID_" + str(patientId)+"/hr_stats_pid_" + str(patientId) + ".json"                
-    hourly_stats =   "./static/plotlycharts/PatientID_"+str(patientId) + "/hr_stats_hour_pid_"+ str(patientId) +".json" 
-    with open(stats_hr_json_path, "r") as json_file:
-        hr_stats = json.load(json_file) 
-    with open(hourly_stats, "r") as json_file:
-        hourly_stats = json.load(json_file)
+    folder_id = '1lkNmQHD4Qc-Rz1htsbED8TuPuT1U93Z0'
+    # Google drive file reads Eg:- PatientID_21_hr_stats_daily.json.
+    hr_stats_daily = gd_json_read(folder_id,str(patient_id),"daily.json")
+    # Google drive file reads Eg:- PatientID_21_hr_stats_hourly.json.
+    hourly_stats = gd_json_read(folder_id,str(patient_id),"hourly.json")
     return render_template( 
-        'heart_rate_variability.html', patientId=patientId , dates=dates , form = form , submitted_date=form.date.data,max_d=max_d,min_d=min_d,mean_d=mean_d,std_d=std_d,selected_date=str(form.date.data),file_name_hr=file_name_hr,family_name=family_name,given_name=given_name,gender=gender,hr_stats=hr_stats,hourly_stats=hourly_stats[0])
+        'heart_rate_variability.html',patient_id=patient_id,hr_stats=hr_stats_daily,hourly_stats=hourly_stats)
 
 
 
