@@ -22,7 +22,9 @@ from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
 import pandas as pd
 from googleapiclient.http import MediaFileUpload
-
+####################################################################
+# CarePortal Scaling up.                                           #
+####################################################################
 gauth = GoogleAuth()
 gauth.LocalWebserverAuth() 
 drive = GoogleDrive(gauth)
@@ -52,6 +54,7 @@ def unique_time_stamps(df):
 
 # Returns a list of time in secods per activity bucket.
 def calculate_time_seconds_each_act(hr):
+    #print("calculate_time_seconds_each_act / hr.columns ===================",hr.columns)
     total_time_each_bucket_seconds = []
     unique_ts_each_bucket = []
     print("Number of buckets ",hr["HR_ACT_ZONE_MORE"].unique())
@@ -63,7 +66,7 @@ def calculate_time_seconds_each_act(hr):
         end_ts_hr_list = []
         time_seconds_list = []
         #print("Bucket",bucket,"Data shape", hr[hr["HR_ACT_ZONE_MORE"]==bucket].shape[0])
-        #print("Data = ", hr[hr["HR_ACT_ZONE_MORE"]==bucket])
+        print("Data = ", hr[hr["HR_ACT_ZONE_MORE"]==bucket])
         unique_ts_beyond_act = unique_time_stamps(hr[hr["HR_ACT_ZONE_MORE"]==bucket])
         unique_ts_each_bucket.append(unique_ts_beyond_act)
         print("UNIQUE TS LIST  = ",len(unique_ts_beyond_act))
@@ -72,6 +75,7 @@ def calculate_time_seconds_each_act(hr):
             val_bool = []
             val = []
             for i in hr[hr["HR_ACT_ZONE_MORE"]==bucket]["TimeStamp"]:
+                print("calculate_time_seconds_each_act / i===== ",i)
                 # Bool Ture if condition is met.
                 val_bool.append(i.startswith(ts_hour))
                 val.append(i) # Also create a list of actual values.
@@ -79,7 +83,10 @@ def calculate_time_seconds_each_act(hr):
             val_series = pd.Series(val_bool)
             start_index = val_series.where(val_series==True).first_valid_index()
             end_index = val_series.where(val_series==True).last_valid_index()
+            print("========= val ============== ",val)
+            print("========= val[start_index] =========",val[start_index])
             start_ts = datetime.strptime(val[start_index], "%H:%M:%S.%f") 
+
             end_ts = datetime.strptime(val[end_index], "%H:%M:%S.%f")
             time_seconds = (end_ts - start_ts).total_seconds()
             start_ts_hr_list.append(start_ts)
@@ -96,7 +103,6 @@ def calculate_time_seconds_each_act(hr):
     for i in total_time_each_bucket_seconds:
         str_text_time_mins.append(str(int(i)) + " Minutes")
     return total_time_each_bucket_seconds,str_text_time_mins,bucket_info_list
-
 
 ##################################################################
 # Calculates hourly Activity levels.
@@ -153,9 +159,9 @@ def daily_hr_stats(df):
     return json_27_stats
 
 
-######################
-# Statistics by HOUR.
-#####################
+############################
+# HR Statistics by HOUR.
+############################ 
 def hourly_hr_stats(df_hr_zone):
     ts_list = ['00' ,'01' ,'02' ,'03' ,'04' ,'05', '06' ,'07', '08' ,'09', '10' ,'11' ,'12' ,'13', '14', '15', '16' ,'17', '18' ,'19', '20', '21','22','23']
     print("columns=====",df_hr_zone.columns)
@@ -206,6 +212,7 @@ def hourly_hr_stats(df_hr_zone):
         json_list.append(json_27_stats)
     #print("=========================== json_list ===========================",json_list)
     return json_list
+
 #######################################################################################
 # Parameters - Takes in a json data structure {json_27_stats}, 
 #   patient_folder i.e the google drive id for the patient folder, 
@@ -215,14 +222,16 @@ def hourly_hr_stats(df_hr_zone):
 #######################################################################################
 def upload_file_google_drive(json_27_stats,patient_folder,json_filename):
     # 1. Write file to local folder.
-    with open("/Users/shehjarsadhu/Desktop/SeperateDataJSON/" + patient_folder['title'] + json_filename, 'w') as outfile:
-        json.dump(json_27_stats, outfile)
-    print("json_27_stats ------------",json_27_stats)
+    # with open("/Users/shehjarsadhu/Desktop/SeperateDataJSON/" + patient_folder['title'] + json_filename, 'w') as outfile:
+    #     json.dump(json_27_stats, outfile)
+    # print("json_27_stats ------------",json_27_stats)
+    json_27_stats.to_csv("/Users/shehjarsadhu/Desktop/SeperateDataJSON/" + patient_folder['title'] + json_filename,index=0)
     # 2. Upload JSON file to google drive.
-    gfile = drive.CreateFile({'title':  patient_folder['title'] + json_filename,'parents': [{'id':patient_folder['id']}]})
+    gfile = drive.CreateFile({'title':  patient_folder['title'] + json_filename, 'parents': [{'id':patient_folder['id']}]})
     # 3. Read file and set it as the content of this instance.
     gfile.SetContentFile("/Users/shehjarsadhu/Desktop/SeperateDataJSON/" +patient_folder['title'] + json_filename)
     gfile.Upload() # Upload the file.
+
 #########################################################################################################
 # google_drive_file_read(seperate_Data_folder_id)
 # parameters - seperate_Data_folder_id -> root data folder id such as /SeperateData sharable ID.
@@ -235,20 +244,21 @@ def google_drive_file_read(seperate_Data_folder_id):
     for patient_folder in fileList:
         # patient_folder['title'] => PatientID_130
         if patient_folder['title'].startswith("Pat"): # If it starts with Pat only.
-            print("------------------------------IF CONDITION----------------------------------------")
+            #print("------------------------------IF CONDITION----------------------------------------")
             print("title: - ",patient_folder['title'],"id: - ",patient_folder['id']) 
             data_files = drive.ListFile({
                 'q': f"'{patient_folder['id']}' in parents and trashed=false"
                 }).GetList()
             # Gets each file in the SeperateData/PatientID_130/ filder Eg:- HR_all.csv, HR_SDNN.csv etc..
             for sensor_file in data_files:
-                    # If already calculated then pass do nothing.
-                print("sensor_file==",sensor_file["title"])
-                if sensor_file["title"].startswith("HR.csv"): 
+                # If already calculated then pass do nothing.
+                if sensor_file["title"].endswith("_hr_zone.csv"):
+                    print("sensor_file==",sensor_file["title"]) 
                     if sensor_file["title"].endswith("stats_hourly.json"):
                             print("SKIP THIS...... ")
                     URL = f"https://drive.google.com/file/d/{sensor_file['id']}/view?usp=sharing"
                     path = 'https://drive.google.com/uc?export=download&id='+URL.split('/')[-2]
+                    print("PATH =",path)
                     df = pd.read_csv(path)
                         # 1. Creates json file for daily stats for each date seperately.
                         # json_27_stats = daily_hr_stats(df)
@@ -259,10 +269,60 @@ def google_drive_file_read(seperate_Data_folder_id):
                         # print(json_Act_levels)
                         # 2. Upload the json file created to google drive. 
                         #upload_file_google_drive(json_Act_levels,patient_folder,"activity_levels.json")
-                    hourly_json_stats = hourly_hr_stats(df)
-                    print("PATIENT ID ",df["Patient.ID"][0])
+                    #hourly_json_stats = hourly_hr_stats(df)
+                    #print("PATIENT ID ",df["Patient.ID"][0])
                     #print("==================== HOURLY JSON ====================\n",hourly_json_stats)
-                    upload_file_google_drive(hourly_json_stats,patient_folder,"_hr_stats_hourly.json")
+                    # 1. Create the HR Zone DF.
+                    print("------------DF COLUMNS-------------------",df.columns)
+                    # hr_zones = calculate_hr_zones(df)
+                    # 2. Then upload to gogle drive. 
+                    # upload_file_google_drive(hr_zones,patient_folder,"_hr_zone.csv")
+                    dt_convert_hr = pd.to_datetime(df.Time,format="%H:%M:%S.%f")
+                    #print("dt_convert_hr ================== \n",dt_convert_hr,type(dt_convert_hr))
+                    # Set time as index.
+                    print("dt_convert_hr ================",dt_convert_hr.tolist())
+                    ts_list = dt_convert_hr.tolist()
+                    #hr_dt_index = df.set_index(dt_convert_hr)
+                    df["TimeStamp"] = ts_list
+                    #print("------------- HR TS DF --------------",df.head())
+                    #print("------------- HR TS DF columns--------------",df.columns)
+                    #print("------------- HR TS DF columns Time--------------",df.Time)
+                    #print("------------- HR TS DF columns Index--------------",df.index)
+                    # HR Zone JSON.
+                    hr_activity_levels_json = calculate_hr_based_activity_levels(df)
+                    #upload_file_google_drive(hr_activity_levels_json,patient_folder,"_hr_activity_levels.json")
+
+def local_file_read(local_file_path_root):
+        #patient_id = 88
+    #patient_id_list = [27,34,52,53,75,80,88,90,106,118,129,131,584]
+    for patient_id in patient_id_list:
+        print("--------Patient ID -------- :", patient_id)
+        start_time = time.time()
+        date_id_list = get_dates(patient_id)
+        #print("date_id_list = ", date_id_list)
+        day_wise_mins = []
+        day_wise_mins_annotation_fotmat = []
+        bucket_info_day_list = []
+        # For all Dates of a particlar Patient.
+        for i in date_id_list:
+            print("--------Date-------- :", i)
+            path = "/Users/shehjarsadhu/Desktop/UniversityOfRhodeIsland/Graduate/WBL/My_Thesis/Project_ED-Ear/Data/SeperateData/PatientID_" +str(patient_id) + "/HR.csv"#"/HR_ACT_Resample_40Hz_PID_" + str(patient_id) + "_" + str(i) + "_Date_ID_HR.csv"
+            hr = pd.read_csv(path)
+    #         split_date_time(hr)
+    #         total_time_each_bucket_mins,str_text_time_mins,bucket_info_list = calculate_time_seconds_each_act(hr)
+    #         day_wise_mins.append(total_time_each_bucket_mins)
+    #         day_wise_mins_annotation_fotmat.append(str_text_time_mins)
+    #         bucket_info_day_list.append(bucket_info_list)
+    #     stop_time = time.time()
+    #     day_pandas = pd.DataFrame(day_wise_mins,columns=["LessIntense","ModerateIntensity","HighIntensity","BeyondActivity"])
+    #     day_pandas["Dates"] = date_id_list
+    #     annotation_df = pd.DataFrame(day_wise_mins_annotation_fotmat,columns=["LessIntense","ModerateIntensity","HighIntensity","BeyondActivity"])
+    #     json_Act_levels = {}
+    #     for i in day_pandas["Dates"]:
+    #         json_Act_levels[i] = day_pandas.iloc[i].to_list()
+    #     r = "/Users/shehjarsadhu/Desktop/UniversityOfRhodeIsland/Graduate/ResearchWBL/My_Thesis/careportal-webapp/static/plotlycharts/"
+    # #     with open(r+"PatientID_"+ str(patient_id)+"timming_"+str(patient_id)+"activity_levels.json", 'w') as outfile:
+    # #         json.dump(json_Act_levels, outfile)
 
 def delete_files(seperate_Data_folder_id):
     query = f"'{seperate_Data_folder_id}' in parents and trashed=false"
@@ -279,14 +339,44 @@ def delete_files(seperate_Data_folder_id):
             # Gets each file in the SeperateData/PatientID_130/ filder Eg:- HR_all.csv, HR_SDNN.csv etc..
             for sensor_file in data_files:
                 print("sensor_file = ",type(sensor_file))
-                if sensor_file["title"].endswith("stats_hourly.json"): 
-                    sensor_file.Trash()  # Move file to trash.
-                    #service.files().delete(fileId=sensor_file["id"]).execute()
-                if sensor_file["title"].startswith("/Users/shehjarsadhu/Desktop/"):
-                     sensor_file.Trash()
+                # if sensor_file["title"].endswith("stats_hourly.json"): 
+                #     sensor_file.Trash()  # Move file to trash.
+                #     #service.files().delete(fileId=sensor_file["id"]).execute()
+                # if sensor_file["title"].startswith("/Users/shehjarsadhu/Desktop/"):
+                #      sensor_file.Trash()
+                if sensor_file["title"].endswith("_hr_zone.csv"):
+                    sensor_file.Trash()
                 if sensor_file["title"].startswith(".DS_Store"):
                     sensor_file.Trash()
+                if sensor_file["title"].endswith("HR_Diff.csv"):
+                    sensor_file.Trash()
+                if sensor_file["title"].endswith("HR_SDNN.csv"):
+                    sensor_file.Trash()
+                if sensor_file["title"].endswith("HR_SDRR.csv"):
+                    sensor_file.Trash()
 
+
+## Returns labeled HR zones based on.
+def calculate_hr_zones(df):
+    act_zone_lables = []
+    # Iterate over each row of HR value to determine Activity Levels.
+    # Based on HR activity zone calcualtion above label the activities.
+    print("Calculating Zones.." )
+    for idx, row in df.iterrows():
+        if row["Heart.Rate..BPM."] <= 102.5:
+            act_zone_lables.append(0)
+        #50%-70%
+        elif row["Heart.Rate..BPM."] > 102.5 and row["Heart.Rate..BPM."] <= 143.5:
+            act_zone_lables.append(1)
+        #70%-85%
+        elif row["Heart.Rate..BPM."] > 143.5 and row["Heart.Rate..BPM."] <= 174.25:
+            act_zone_lables.append(2)
+        else:
+            # No calssification.
+            act_zone_lables.append(-1)
+    df["HR_ACT_ZONE_MORE"] = act_zone_lables
+    print("Done Calculating Zones.." )
+    return df
 
 if __name__ == "__main__":
     seperate_Data_folder_id = '1lkNmQHD4Qc-Rz1htsbED8TuPuT1U93Z0'
@@ -295,3 +385,5 @@ if __name__ == "__main__":
     executionTime = (time.time() - startTime)
     print('Execution time in seconds: ' + str(executionTime))
     #delete_files(seperate_Data_folder_id)
+    #/Users/shehjarsadhu/Desktop/UniversityOfRhodeIsland/Graduate/WBL/My_Thesis/Project_ED-Ear/Data/SeperateData/PatientID_120
+

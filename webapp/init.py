@@ -30,14 +30,20 @@ from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
 from googleapiclient.http import MediaFileUpload
 import time
+from urllib.request import urlopen
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] ="Kaya"
 # Set database instances
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:///database/careportal-dev-hr.db'
-app.config['RECAPTCHA_USE_SSL']= False
+# PATH- https://drive.google.com/uc?export=download&id=1OcgXMkj4d4f8qde1rvUZejmUbXaSydAp
+# https://drive.google.com/file/d/1Ftp4sOpRwCCWB19bKR18oEucWbYMmoh-/view?usp=sharing
 # Site key: 6LcijG0cAAAAACKIXc3CVPuEfvl6pf2dFERY7gNU
 # Seceret Key 6LcijG0cAAAAAG38qeW2Ay0Y4bOSBN8ZmvSigNLm
+#'sqlite://https://drive.google.com/file/d/1Ftp4sOpRwCCWB19bKR18oEucWbYMmoh-/view?usp=sharing' #'
+
+app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:///database/careportal-dev-hr.db' 
+app.config['RECAPTCHA_USE_SSL']= False
 
 app.config['RECAPTCHA_PUBLIC_KEY']= '6LcijG0cAAAAACKIXc3CVPuEfvl6pf2dFERY7gNU'
 app.config['RECAPTCHA_PRIVATE_KEY']='6LcijG0cAAAAAG38qeW2Ay0Y4bOSBN8ZmvSigNLm'
@@ -51,10 +57,11 @@ login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 root_pi = "/var/www/html/web"
 
+
+
 gauth = GoogleAuth()
 gauth.LocalWebserverAuth() 
 drive = GoogleDrive(gauth)
-
 p_27 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
 p_34 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 p_52 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
@@ -121,9 +128,11 @@ def unique_time_stamps(df):
 @login_manager.user_loader
 def load_user(user_id):
     return user_doctor.query.get(int(user_id))
+
 @app.route('/')
 def home():
     return render_template('home.html')
+
 @app.route('/about')
 def about():
     return render_template('about.html')
@@ -152,8 +161,6 @@ def login_doctors():
     form = LogInFormDoctors()
     print("user_doctor :",user_doctor.query.all())
     user = user_doctor.query.filter_by(email=form.email.data).first()
-    #user_p = user_doctor.query.filter_by(password=form.email.data).first()
-    # print("USER: ",user.columns.keys())
     print("Form FIelds = ",form.validate_on_submit())
     # Check is the fields in the form are valid.
     if form.validate_on_submit():
@@ -174,41 +181,45 @@ def signout():
     logout_user()
     return redirect(url_for("home"))
 
+# Returns a list of patient folders in the google drive.
 def get_num_patients(seperate_Data_folder_id):
-    # gauth = GoogleAuth()
-    # gauth.LocalWebserverAuth() 
-    # drive = GoogleDrive(gauth)
+
     query = f"'{seperate_Data_folder_id}' in parents and trashed=false"
-    print("query = ",type(query))
+    #print("query = ",type(query))
     fileList = drive.ListFile({'q':query }).GetList()
     count_patient = []
-    print("NUMBER OF AVALIABLE PATIENTS ===",len(fileList))
+    #print("NUMBER OF AVALIABLE PATIENTS ===",len(fileList))
     for i in fileList:
         if i['title'].startswith("Pat"):
-            print("FILETITLE- ",int(i['title'].split("_")[1]))
+            #print("FILETITLE- ",int(i['title'].split("_")[1]))
             count_patient.append(int(i['title'].split("_")[1]))
     return count_patient
+
 @app.route('/view_patients')
 @login_required
 def view_patients():
     patients = user_patient.query.order_by(user_patient.id.asc())
     seperate_Data_folder_id = '1lkNmQHD4Qc-Rz1htsbED8TuPuT1U93Z0'
+    # to get the number of patients in the study
     count_patient = get_num_patients(seperate_Data_folder_id)
-    print("patients[:]",patients[:])
-    print("count_patient",count_patient)
+    print("====count patients list===",count_patient,type(count_patient))
+    count_patient.sort()
+    print("====count_patient===",count_patient)
     return render_template('patients.html', patients = count_patient)
-def google_drive_file_read(seperate_Data_folder_id,patientID):
 
+# Reads json files form google drive.
+# and string_name_for json file  - "stats_hourly.json"
+# seperate_Data_folder_id,patientID,json_filename - hourly.json
+def gd_json_read(seperate_Data_folder_id,patientID,json_filename):
     query = f"'{seperate_Data_folder_id}' in parents and trashed=false"
     print("query = ",type(query))
     fileList = drive.ListFile({'q':query }).GetList()
     # ED EAR - HR Datafolder - List of all HR files using google drive folder.
     print("NUMBER OF AVALIABLE PATIENTS ===",len(fileList))
     for patient_folder in fileList:
-        # patient_folder['title'] => PatientID_130
+        # Read only folders starting with "PatientID_"
         if patient_folder['title'].startswith("Pat"): # If it starts with Pat only.
-            #print("------------------------------IF CONDITION----------------------------------------")
-            #print("title: - ",patient_folder['title'],"id: - ",patient_folder['id']) 
+            # Read only files starting with "PatientID_".
             if patient_folder["title"].startswith("PatientID_" + patientID):
                 print("patientID ======",patientID)
                 data_files = drive.ListFile({
@@ -217,12 +228,13 @@ def google_drive_file_read(seperate_Data_folder_id,patientID):
                 # Gets each file in the SeperateData/PatientID_130/ filder Eg:- HR_all.csv, HR_SDNN.csv etc..
                 for sensor_file in data_files:
                     # sensor_file["title"] = PatientID_146_hr_stats_daily.json
-                    if sensor_file["title"].endswith("daily.json"): 
+                    if sensor_file["title"].endswith(json_filename): # json_filename
                         URL = f"https://drive.google.com/file/d/{sensor_file['id']}/view?usp=sharing"
                         path = 'https://drive.google.com/uc?export=download&id='+URL.split('/')[-2]
-                        df = pd.read_json(path)
-                        return df
-
+                        print("PATH-",path)
+                        response = urlopen(path)
+                        json_data = json.loads(response.read())
+                        return json_data
 
 ##########################################################################
 # Parameters - patient ID.
@@ -233,23 +245,14 @@ def google_drive_file_read(seperate_Data_folder_id,patientID):
 def heart_rate_route(patient_id,methods=['GET', 'POST']):
      start_time_plot = time.time()
      form = DateDropDown_form()
-     seperate_Data_folder_id = '1lkNmQHD4Qc-Rz1htsbED8TuPuT1U93Z0'
-     # COLUMNS = pid, dates, mean, min, max, std, hrv
-     df = google_drive_file_read(seperate_Data_folder_id,str(patient_id))
-     hr_stats_daily = {
-         "pid": df["pid"][0],
-         "min": df["min"].tolist(),
-         "max": df["max"].tolist(),
-         "std": df["std"].tolist(),
-         "mean": df["mean"].tolist(),
-         "hrv":df["hrv"].tolist(),
-         "dates": df["dates"].tolist()
-     }
-     hourly_stats =  "./static/plotlycharts/PatientID_"+str(patient_id) + "/hr_stats_hour_pid_"+ str(patient_id) +".json" 
-     with open(hourly_stats, "r") as json_file:
-         hourly_stats = json.load(json_file)
+     # Seperate Data folder ID from google drive.
+     folder_id = '1lkNmQHD4Qc-Rz1htsbED8TuPuT1U93Z0'
+     # Google drive file reads Eg:- PatientID_21_hr_stats_daily.json.
+     hr_stats_daily = gd_json_read(folder_id,str(patient_id),"daily.json")
+     # Google drive file reads Eg:- PatientID_21_hr_stats_hourly.json.
+     hourly_stats = gd_json_read(folder_id,str(patient_id),"hourly.json")
      return render_template("heart_rate.html",patientId=patient_id,
-                            form =form,date_id_list=df["dates"].tolist(),
+                            form =form,date_id_list=hr_stats_daily["dates"],
                             hr_stats = hr_stats_daily,
                             hourly_stats = hourly_stats[0],
                             selected_date = str(form.date.data))
