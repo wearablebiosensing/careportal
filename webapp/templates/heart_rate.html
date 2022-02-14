@@ -107,14 +107,14 @@
                                     if (data_hr["max"][i]>174){
                                         color.push(0);
                                     }
-                                    else{
+                                    else if(data_hr["max"][i]<174){
                                         color.push(1);
                                     }
                                 }
                                 console.log(color)
                                 colorscale = [[0, 'red'],[1, '#18808B']];
                                 var trace1 = {
-                                    x: data_hr["dates"], //data_hr["dates"],
+                                    x: data_hr["dates"], 
                                     y: data_hr["max"],
                                     mode: 'lines+markers',
                                     type: 'scatter',

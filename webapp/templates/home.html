@@ -7,7 +7,7 @@
 -->
 {% extends "layout.html" %} {%block content%}
 
-{% if current_user.is_authenticated %}
+<!-- {% if current_user.is_authenticated %} -->
     <img src="/static/careportal_logo/background.png" style="align-items: center;width: 100%; height: 100%;"> 
 
         <h1 style="  position: absolute;
@@ -23,7 +23,7 @@
             Click on the Patient Dashboard link above to view patients data. 
     </h6>
 
-{% else %}
+<!-- {% else %} -->
 <!-- <div> Watch Video </div> -->
 <div class="container" style="position: relative;text-align: center;color: white;">
 </div>
@@ -40,6 +40,6 @@ left: 50%;
 transform: translate(-50%, -50%); color: #FFFFFF;"> 
     Please take a moment ro Register to CarePortal by clicking the Register link above.
 </h6>
-{% endif %}
+<!-- {% endif %} -->
 
 {%endblock content%}

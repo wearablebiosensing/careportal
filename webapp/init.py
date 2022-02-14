@@ -60,18 +60,7 @@ root_pi = "/var/www/html/web"
 gauth = GoogleAuth()
 gauth.LocalWebserverAuth() 
 drive = GoogleDrive(gauth)
-p_27 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-p_34 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-p_52 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-p_53 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
-p_75 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
-p_80 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
-p_88 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
-p_90 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
-p_106 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-p_118 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-p_129 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-p_131 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+
 # Returns a list of Dates based on Date ID.
 def get_dates(patient_id):
     date_id_list = []
@@ -123,6 +112,20 @@ def unique_time_stamps(df):
         time_stamp_list.append(val[11:13])
     return np.unique(np.array(time_stamp_list))
 
+# Returns a list of patient folders in the google drive.
+def get_num_patients(seperate_Data_folder_id):
+
+    query = f"'{seperate_Data_folder_id}' in parents and trashed=false"
+    #print("query = ",type(query))
+    fileList = drive.ListFile({'q':query }).GetList()
+    count_patient = []
+    #print("NUMBER OF AVALIABLE PATIENTS ===",len(fileList))
+    for i in fileList:
+        if i['title'].startswith("Pat"):
+            #print("FILETITLE- ",int(i['title'].split("_")[1]))
+            count_patient.append(int(i['title'].split("_")[1]))
+    return count_patient
+
 @login_manager.user_loader
 def load_user(user_id):
     return user_doctor.query.get(int(user_id))
@@ -130,11 +133,7 @@ def load_user(user_id):
 @app.route('/')
 def home():
     return render_template('home.html')
-
-@app.route('/about')
-def about():
-    return render_template('about.html')
-    
+ 
 # Registers the doctors and inserts their information in the database
 @app.route('/registerdoctor',methods = ["GET", "POST"])
 def register_doctors():
@@ -179,22 +178,8 @@ def signout():
     logout_user()
     return redirect(url_for("home"))
 
-# Returns a list of patient folders in the google drive.
-def get_num_patients(seperate_Data_folder_id):
-
-    query = f"'{seperate_Data_folder_id}' in parents and trashed=false"
-    #print("query = ",type(query))
-    fileList = drive.ListFile({'q':query }).GetList()
-    count_patient = []
-    #print("NUMBER OF AVALIABLE PATIENTS ===",len(fileList))
-    for i in fileList:
-        if i['title'].startswith("Pat"):
-            #print("FILETITLE- ",int(i['title'].split("_")[1]))
-            count_patient.append(int(i['title'].split("_")[1]))
-    return count_patient
-
 @app.route('/view_patients')
-@login_required
+#@login_required
 def view_patients():
     patients = user_patient.query.order_by(user_patient.id.asc())
     seperate_Data_folder_id = '1lkNmQHD4Qc-Rz1htsbED8TuPuT1U93Z0'
@@ -239,7 +224,7 @@ def gd_json_read(seperate_Data_folder_id,patientID,json_filename):
 # Displays MAX, MIN heart rate data on an hourly and daily basis.
 ##########################################################################
 @app.route('/patient/<int:patient_id>/overall', methods=['GET', 'POST'])
-@login_required
+#@login_required
 def heart_rate_route(patient_id,methods=['GET', 'POST']):
      start_time_plot = time.time()
      form = DateDropDown_form()
@@ -255,13 +240,28 @@ def heart_rate_route(patient_id,methods=['GET', 'POST']):
                             hourly_stats = hourly_stats[0],
                             selected_date = str(form.date.data))
 
+# Calculates HR features for a particular patient, plots the HR feaure values like RR interval,SSDRR.
+@app.route('/heart_rate_variability/<int:patient_id>', methods=['GET', 'POST'])
+#@login_required
+def heart_rate_variability_route(patient_id):
+    graphs = []
+    day = []
+    print("patient(): patient_id",patient_id)
+    folder_id = '1lkNmQHD4Qc-Rz1htsbED8TuPuT1U93Z0'
+    # Google drive file reads Eg:- PatientID_21_hr_stats_daily.json.
+    hr_stats_daily = gd_json_read(folder_id,str(patient_id),"daily.json")
+    # Google drive file reads Eg:- PatientID_21_hr_stats_hourly.json.
+    hourly_stats = gd_json_read(folder_id,str(patient_id),"hourly.json")
+    return render_template( 
+        'heart_rate_variability.html',patient_id=patient_id,hr_stats=hr_stats_daily,hourly_stats=hourly_stats)
+
 # Displays Activity Level Data for patient selected. Get the patient ID from route.
 ##########################################################################
 # Parameters - patient ID.
 # Displays Activity levels data based on HR levles.
 ##########################################################################
 @app.route('/patient/<int:patient_id>/activity', methods=['GET', 'POST'])
-@login_required
+#@login_required
 def activity_levels(patient_id,methods=['GET', 'POST']):
      patientId = user_patient.query.get(patient_id)
      print("activity_levels: ",patientId)
@@ -282,22 +282,6 @@ def activity_levels(patient_id,methods=['GET', 'POST']):
          act_levels = json.load(json_file)
     #  hr_activity_d_list = hr_stats["HR_Activity"][int(form.date.data)]
      return render_template('activity_level.html',patientId=patient_id,form=form,dates=dates,selected_date=str(form.date.data),act_levels =act_levels)
-
-# Calculates HR features for a particular patient, plots the HR feaure values like RR interval,SSDRR.
-@app.route('/heart_rate_variability/<int:patient_id>', methods=['GET', 'POST'])
-@login_required
-def heart_rate_variability_route(patient_id):
-    graphs = []
-    day = []
-    print("patient(): patient_id",patient_id)
-    folder_id = '1lkNmQHD4Qc-Rz1htsbED8TuPuT1U93Z0'
-    # Google drive file reads Eg:- PatientID_21_hr_stats_daily.json.
-    hr_stats_daily = gd_json_read(folder_id,str(patient_id),"daily.json")
-    # Google drive file reads Eg:- PatientID_21_hr_stats_hourly.json.
-    hourly_stats = gd_json_read(folder_id,str(patient_id),"hourly.json")
-    return render_template( 
-        'heart_rate_variability.html',patient_id=patient_id,hr_stats=hr_stats_daily,hourly_stats=hourly_stats)
-
 
 
 

@@ -433,17 +433,19 @@ input[type=checkbox]:checked ~ label > img {
             <a class="navbar-brand" href="{{url_for('home')}}">
                 <img class="logo" src="/static/careportal_logo/CPlogo.png" />
             </a>
-            <form class="form-inline">
-                {% if current_user.is_authenticated %}
-                <a class="nav_bar_links"href="{{url_for('view_patients')}}" style="margin-right: 2ch; text-align: center;font-size: 1.5ch; font-family: 'IBM Plex Sans', sans-serif;"> 
-                  Patient Dashboard </a>
-                <a class = "nav_bar_links" href="{{url_for('signout')}}" class="page-text " style=" margin-right: 2ch;font-family: 'IBM Plex Sans', sans-serif;">Sign out</a>
-                <div class=" page-text" style="font-family: 'IBM Plex Sans', sans-serif; color: #877E7E;"> Hello, {{ current_user.email }} </div>
-                {% else %}
-                <a class = "nav_bar_links" href="{{url_for('register_doctors')}}" class="page-text" style="margin-right: 2ch;font-family: 'IBM Plex Sans', sans-serif;">Register</a>
-                <a class = "nav_bar_links" href="{{url_for('login_doctors')}}" class="page-text" style="margin-right: 2ch;font-family: 'IBM Plex Sans', sans-serif;">Login</a> 
-                {% endif %}
-            </form>
+            <a class="nav_bar_links"href="{{url_for('view_patients')}}" style="margin-right: 2ch; text-align: center;font-size: 1.5ch; font-family: 'IBM Plex Sans', sans-serif;"> 
+              Patient Dashboard </a>
+            <!-- <form class="form-inline"> -->
+                <!-- {% if current_user.is_authenticated %} -->
+                <!-- <a class="nav_bar_links"href="{{url_for('view_patients')}}" style="margin-right: 2ch; text-align: center;font-size: 1.5ch; font-family: 'IBM Plex Sans', sans-serif;"> 
+                  Patient Dashboard </a> -->
+                <!-- <a class = "nav_bar_links" href="{{url_for('signout')}}" class="page-text " style=" margin-right: 2ch;font-family: 'IBM Plex Sans', sans-serif;">Sign out</a> -->
+                <!-- <div class=" page-text" style="font-family: 'IBM Plex Sans', sans-serif; color: #877E7E;"> Hello, {{ current_user.email }} </div> -->
+                <!-- {% else %} -->
+                <!-- <a class = "nav_bar_links" href="{{url_for('register_doctors')}}" class="page-text" style="margin-right: 2ch;font-family: 'IBM Plex Sans', sans-serif;">Register</a> -->
+                <!-- <a class = "nav_bar_links" href="{{url_for('login_doctors')}}" class="page-text" style="margin-right: 2ch;font-family: 'IBM Plex Sans', sans-serif;">Login</a>  -->
+                <!-- {% endif %} -->
+            <!-- </form> -->
         </nav>
     </header>
 
