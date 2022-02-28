@@ -101,7 +101,9 @@
                     font-family: 'IBM Plex Sans', sans-serif;">
                         <script>
                                 var data_hr = {{hr_stats|tojson}};
+                                
                                 color = [];
+                                
                                 // for v in in hr_stats["max"]
                                 for (let i = 0; i < data_hr["max"].length; i++) {
                                     if (data_hr["max"][i]>174){
@@ -112,14 +114,20 @@
                                     }
                                 }
                                 console.log(color)
-                                colorscale = [[0, 'red'],[1, '#18808B']];
+                                // add a third color (Elm color) to make teal
+                                colorscale = [[0, 'red'],[0.1, '#1C707F'],[1, 'teal']];
                                 var trace1 = {
                                     x: data_hr["dates"], 
                                     y: data_hr["max"],
                                     mode: 'lines+markers',
+                                    name: 'max',
                                     type: 'scatter',
-                                    marker: { color:color,colorscale:colorscale,size: 15 },
-
+                                    //loop test
+                                    marker: { 
+                                        'color':color,
+                                        'colorscale':colorscale,
+                                        'size': 15 
+                                    },
                                     line: {
                                             shape: 'spline',
                                             smoothing: 1.3,
