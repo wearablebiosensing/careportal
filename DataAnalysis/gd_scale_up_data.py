@@ -55,39 +55,46 @@ def unique_time_stamps(df):
 # Returns a list of time in secods per activity bucket.
 def calculate_time_seconds_each_act(hr):
     #print("calculate_time_seconds_each_act / hr.columns ===================",hr.columns)
+    #print("calculate_time_seconds_each_act / hr clear ===================",hr.head())
     total_time_each_bucket_seconds = []
     unique_ts_each_bucket = []
-    print("Number of buckets ",hr["HR_ACT_ZONE_MORE"].unique())
+    #print("Number of buckets ",hr["HR_ACT_ZONE_MORE"].unique())
     bucket_info_list = hr["HR_ACT_ZONE_MORE"].unique()
     for bucket in [0,1,2,-1]:
-        print("For BUCKET",bucket)
+        #print("For BUCKET",bucket)
         # Both should have same number of elements.
         start_ts_hr_list = []
         end_ts_hr_list = []
         time_seconds_list = []
         #print("Bucket",bucket,"Data shape", hr[hr["HR_ACT_ZONE_MORE"]==bucket].shape[0])
-        print("Data = ", hr[hr["HR_ACT_ZONE_MORE"]==bucket])
+        #print("Data = ", hr[hr["HR_ACT_ZONE_MORE"]==bucket])
+        #print("Data = ", hr[hr["HR_ACT_ZONE_MORE"]==bucket]["TimeStamp"])
         unique_ts_beyond_act = unique_time_stamps(hr[hr["HR_ACT_ZONE_MORE"]==bucket])
         unique_ts_each_bucket.append(unique_ts_beyond_act)
-        print("UNIQUE TS LIST  = ",len(unique_ts_beyond_act))
+        #print("UNIQUE TS LIST  = ",unique_ts_beyond_act,len(unique_ts_beyond_act))
         for ts_hour in unique_ts_beyond_act:
-            # In order to calculate time we bucket the timestamp by hour and then for each hour find start and end times and take the diff between those and them sum everything.
+            # In order to calculate time we bucket the timestamp by hour,
+            # and then for each hour find start and end times and take the diff between those and them sum everything.
             val_bool = []
             val = []
-            for i in hr[hr["HR_ACT_ZONE_MORE"]==bucket]["TimeStamp"]:
-                print("calculate_time_seconds_each_act / i===== ",i)
+            print("============================= We are on this timestamp =============================",ts_hour)
+            for i in hr[hr["HR_ACT_ZONE_MORE"]==bucket]["TimeStamps"]:
+                # print("calculate_time_seconds_each_act / i===== ",i)
+                # print("calculate_time_seconds_each_act(): ts_hour",ts_hour)
                 # Bool Ture if condition is met.
-                val_bool.append(i.startswith(ts_hour))
+                #print("TIMESTAMP",i.split(" ")[1])
+                val_bool.append(i.split(" ")[1].startswith(ts_hour))
                 val.append(i) # Also create a list of actual values.
             # Convert to pandas aeries in order to use where.
             val_series = pd.Series(val_bool)
+            print("calculate_time_seconds_each_act(): val_series ",val_series)
             start_index = val_series.where(val_series==True).first_valid_index()
             end_index = val_series.where(val_series==True).last_valid_index()
-            print("========= val ============== ",val)
-            print("========= val[start_index] =========",val[start_index])
-            start_ts = datetime.strptime(val[start_index], "%H:%M:%S.%f") 
-
-            end_ts = datetime.strptime(val[end_index], "%H:%M:%S.%f")
+            #print("calculate_time_seconds_each_act(): ========= val ============== ",val)
+            #print("calculate_time_seconds_each_act(): start_index == =",start_index)
+            print("calculate_time_seconds_each_act(): ========= val[start_index],start_index =========",val,start_index)
+            start_ts = datetime.strptime(val[start_index].split(" ")[1], "%H:%M:%S.%f")             
+            end_ts = datetime.strptime(val[end_index].split(" ")[1], "%H:%M:%S.%f")
             time_seconds = (end_ts - start_ts).total_seconds()
             start_ts_hr_list.append(start_ts)
             end_ts_hr_list.append(end_ts)
@@ -240,9 +247,11 @@ def google_drive_file_read(seperate_Data_folder_id):
     query = f"'{seperate_Data_folder_id}' in parents and trashed=false"
     print("query = ",type(query))
     fileList = drive.ListFile({'q':query }).GetList()
+    count_files_processed = 0
     # ED EAR - HR Datafolder - List of all HR files using google drive folder.
     for patient_folder in fileList:
         # patient_folder['title'] => PatientID_130
+        print("FOR Patient ID---------",patient_folder['title'])
         if patient_folder['title'].startswith("Pat"): # If it starts with Pat only.
             #print("------------------------------IF CONDITION----------------------------------------")
             print("title: - ",patient_folder['title'],"id: - ",patient_folder['id']) 
@@ -273,24 +282,34 @@ def google_drive_file_read(seperate_Data_folder_id):
                     #print("PATIENT ID ",df["Patient.ID"][0])
                     #print("==================== HOURLY JSON ====================\n",hourly_json_stats)
                     # 1. Create the HR Zone DF.
-                    print("------------DF COLUMNS-------------------",df.columns)
+                    #print("------------DF COLUMNS-------------------",df.columns)
                     # hr_zones = calculate_hr_zones(df)
                     # 2. Then upload to gogle drive. 
                     # upload_file_google_drive(hr_zones,patient_folder,"_hr_zone.csv")
                     dt_convert_hr = pd.to_datetime(df.Time,format="%H:%M:%S.%f")
                     #print("dt_convert_hr ================== \n",dt_convert_hr,type(dt_convert_hr))
                     # Set time as index.
-                    print("dt_convert_hr ================",dt_convert_hr.tolist())
-                    ts_list = dt_convert_hr.tolist()
+                    #print("dt_convert_hr ================",dt_convert_hr.tolist())
+                    #ts_list = dt_convert_hr.tolist()
+                    #print("dt_convert_hr : ================",dt_convert_hr[0])
                     #hr_dt_index = df.set_index(dt_convert_hr)
-                    df["TimeStamp"] = ts_list
-                    #print("------------- HR TS DF --------------",df.head())
+                    str_ts = []
+                    for t in dt_convert_hr:
+                        timestampStr = t.strftime("%Y-%d-%m %H:%M:%S.%f")
+                        #print("google_drive_file_read/  timestampStr =====",timestampStr)
+                        str_ts.append(timestampStr)
+                    #print("============== str_ts ============== \n",str_ts)
+                    df["TimeStamps"] = str_ts
+                    #print("------------- HR TS DF --------------",df.TimeStamps)
                     #print("------------- HR TS DF columns--------------",df.columns)
                     #print("------------- HR TS DF columns Time--------------",df.Time)
                     #print("------------- HR TS DF columns Index--------------",df.index)
                     # HR Zone JSON.
                     hr_activity_levels_json = calculate_hr_based_activity_levels(df)
-                    #upload_file_google_drive(hr_activity_levels_json,patient_folder,"_hr_activity_levels.json")
+                    print("==========",hr_activity_levels_json)
+                    upload_file_google_drive(hr_activity_levels_json,patient_folder,"_hr_activity_levels.json")
+                    count_files_processed +=1
+                    print("File number = ",count_files_processed)
 
 def local_file_read(local_file_path_root):
         #patient_id = 88

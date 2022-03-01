@@ -33,6 +33,8 @@ import time
 from urllib.request import urlopen
 
 app = Flask(__name__)
+# app.config['SERVER_NAME']='localhost:5000'
+
 app.config['SECRET_KEY'] ="Kaya"
 # Set database instances
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
@@ -102,7 +104,7 @@ class user_patient(db.Model):
     hr_path = db.Column(db.String(10000),nullable=False)
 
 # This import is here because of variable defined above are needed in forms .py
-from forms import RegisterFormDoctors, LogInFormDoctors,DateDropDown_form
+#from forms import RegisterFormDoctors, LogInFormDoctors,DateDropDown_form
 
 # To filter by Hour and Date&Time. Give it a dataset for one day only apply that filter before feeding.
 def unique_time_stamps(df):
@@ -227,7 +229,7 @@ def gd_json_read(seperate_Data_folder_id,patientID,json_filename):
 #@login_required
 def heart_rate_route(patient_id,methods=['GET', 'POST']):
      start_time_plot = time.time()
-     form = DateDropDown_form()
+     # form = DateDropDown_form()
      # Seperate Data folder ID from google drive.
      folder_id = '1lkNmQHD4Qc-Rz1htsbED8TuPuT1U93Z0'
      # Google drive file reads Eg:- PatientID_21_hr_stats_daily.json.
@@ -235,10 +237,12 @@ def heart_rate_route(patient_id,methods=['GET', 'POST']):
      # Google drive file reads Eg:- PatientID_21_hr_stats_hourly.json.
      hourly_stats = gd_json_read(folder_id,str(patient_id),"hourly.json")
      return render_template("heart_rate.html",patientId=patient_id,
-                            form =form,date_id_list=hr_stats_daily["dates"],
+                            #form =form,
+                            date_id_list=hr_stats_daily["dates"],
                             hr_stats = hr_stats_daily,
                             hourly_stats = hourly_stats[0],
-                            selected_date = str(form.date.data))
+                            #selected_date = str(form.date.data)
+                            )
 
 # Calculates HR features for a particular patient, plots the HR feaure values like RR interval,SSDRR.
 @app.route('/heart_rate_variability/<int:patient_id>', methods=['GET', 'POST'])
@@ -265,25 +269,25 @@ def heart_rate_variability_route(patient_id):
 def activity_levels(patient_id,methods=['GET', 'POST']):
      patientId = user_patient.query.get(patient_id)
      print("activity_levels: ",patientId)
-     path =  os.getcwd()  + patientId.acc_path
-     date_id_list = get_dates(patient_id)
+     #path =  os.getcwd()  + patientId.acc_path
+     #date_id_list = get_dates(patient_id)
      # Unique dates from a particular patient.
-     dates = date_id_list #df['Date'].unique()
-     print("Acc Dates:",dates)
+     #dates = date_id_list #df['Date'].unique()
+     #print("Acc Dates:",dates)
      # wtf forms displays the forms on the web page
-     form = DateDropDown_form()
+     #form = DateDropDown_form()
      # Gets the unique avaliable dates from a patient.
-     form.date.choices = [(date) for date in dates]
-     print("date list: ",dates)
-     print("selected date:  ",form.date.data)
+     #form.date.choices = [(date) for date in dates]
+     #print("date list: ",dates)
+     #print("selected date:  ",form.date.data)
 
      activity_levels_timmings =  "./static/plotlycharts/PatientID_" + str(patient_id) +"/PatientID_" + str(patient_id)+  "timming_"+str(patient_id) + "activity_levels.json"
      with open(activity_levels_timmings, "r") as json_file:
          act_levels = json.load(json_file)
     #  hr_activity_d_list = hr_stats["HR_Activity"][int(form.date.data)]
-     return render_template('activity_level.html',patientId=patient_id,form=form,dates=dates,selected_date=str(form.date.data),act_levels =act_levels)
-
-
-
+     return render_template('activity_level.html',patientId=patient_id,dates=dates,act_levels =act_levels)
 
     
+# if __name__ == '__main__':
+#     app.config['SERVER_NAME']="dietwell.net"
+#     app.run(host=app.config['SERVER_NAME'], port="8080", debug=True)
