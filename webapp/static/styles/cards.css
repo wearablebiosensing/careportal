@@ -1,0 +1,17 @@
+.card-columns {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+    
+    margin-bottom: 2em;
+}
+
+.patient_ids_div:hover{
+    background-color: #defafd;
+    border: 1.4px solid #EE8200;
+}
+
+.card .patient_details_link{
+    color:#7b7c7e ;
+}
+
+

@@ -6,7 +6,7 @@
 # Updated by Shehjar Sadhu.              
 #####################################
 -->
-{% extends "layout.html" %} {%block content%}
+{% extends "layout.html" %} {%block content%} 
 <div style="align-self: center; margin-top: 2ch; margin-left: 12ch; margin-right: 12ch;">
     <div style="text-align: center; color: #FFFFFF;font-family: 'IBM Plex Sans', sans-serif;font-size: 25pt; margin-bottom: 5%; ">
         Select the patient you would like to view the details for.    
@@ -14,27 +14,29 @@
     <div class="container">
         <div class="card-columns">
             {% for patient in patients %}
-            <div class="patient_ids_div card " onclick="spinner()" >
-                <div class="card-body" style="color: #111; ;font-family: 'IBM Plex Sans', sans-serif; ">
-                    <h5 class="card-title" style="font-family: 'IBM Plex Sans', sans-serif;"> Patient: {{patient}} </h5>
-                    <div class="loader" style="float: right;">
-                        <div class="loading">
+                {{ patients.index(patient) }}
+                <div class="patient_ids_div card" onclick="spinner(patients.index(patient))" >
+                    <div class="card-body" style="color: #111; ;font-family: 'IBM Plex Sans', sans-serif; ">
+                        <h5 class="card-title" style="font-family: 'IBM Plex Sans', sans-serif;"> Patient: {{patient}} </h5>
+                        <div class="loader" style="float: right;">
+                            <div class="loading">
+                            </div>
                         </div>
+                        <a class="patient_details_link" style="font-family: 'IBM Plex Sans', sans-serif; " href="{{ url_for( 'heart_rate_route' , patient_id=patient) }}">
+                            Click to view details
+                        </a>
                     </div>
-                    <a style="color:#919293 ;font-family: 'IBM Plex Sans', sans-serif; " href="{{ url_for( 'heart_rate_route' , patient_id=patient) }}">
-                        Click to view details
-                    </a>
-              </div>
+                </div>
+            {% endfor %}
         </div>
-        {% endfor %}
-    </div>
     </div>
 </div>
 
 <script>
-     function spinner() {
-        document.getElementsByClassName("loader")[0].style.display = "block";
+    function spinner(index) {
+        document.getElementsByClassName("loader")[index].style.display = "block";
     }
 </script>
+
 
 {%endblock content%}
