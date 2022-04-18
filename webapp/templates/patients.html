@@ -14,11 +14,11 @@
     <div class="container">
         <div class="card-columns">
             {% for patient in patients %}
-                {{ patients.index(patient) }}
-                <div class="patient_ids_div card" onclick="spinner(patients.index(patient))" >
+                
+                <div class="patient_ids_div card" >
                     <div class="card-body" style="color: #111; ;font-family: 'IBM Plex Sans', sans-serif; ">
                         <h5 class="card-title" style="font-family: 'IBM Plex Sans', sans-serif;"> Patient: {{patient}} </h5>
-                        <div class="loader" style="float: right;">
+                        <div class="loader" style="float: right;" onclick="spinner({{ patients.index(patient) }})" >
                             <div class="loading">
                             </div>
                         </div>
@@ -34,7 +34,9 @@
 
 <script>
     function spinner(index) {
+        console.log("The index: ", index)
         document.getElementsByClassName("loader")[index].style.display = "block";
+        
     }
 </script>
 

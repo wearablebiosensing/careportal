@@ -1,8 +1,12 @@
 .card-columns {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
-    
+    margin: 1em;
     margin-bottom: 2em;
+}
+
+.patient_ids_div {
+    padding: 0.7em 0.7em 0.7em;
 }
 
 .patient_ids_div:hover{
