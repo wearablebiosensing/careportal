@@ -433,6 +433,7 @@ input[type=checkbox]:checked ~ label > img {
             <a class="navbar-brand" href="{{url_for('home')}}">
                 <img class="logo" src="/static/careportal_logo/CPlogo.png" />
             </a>
+            <!-- <img class="logo" src="/static//NIHLOGO.png" style="width: 85px; float: left;"> -->
             <a class="nav_bar_links"href="{{url_for('view_patients')}}" style="margin-right: 2ch; text-align: center;font-size: 1.5ch; font-family: 'IBM Plex Sans', sans-serif;"> 
               Patient Dashboard </a>
             <!-- <form class="form-inline"> -->
@@ -448,7 +449,6 @@ input[type=checkbox]:checked ~ label > img {
             <!-- </form> -->
         </nav>
     </header>
-
     <main role="main" style="margin: 0;padding: 0;">
         <!-- <div class="row justify-content-center" style="margin: 0; padding: 1ch;"> -->
         {% with messages = get_flashed_messages(with_categories=true) %} {% if messages %} {% for category, message in messages %} {% endfor %} {% endif %} {% endwith %} {% block content %}{% endblock %}
