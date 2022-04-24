@@ -11,6 +11,7 @@
 <head>
     <!-- Required meta tags -->
     <link rel= "stylesheet" href= "{{ url_for('static',filename='styles/main.css') }}">
+    <link rel= "stylesheet" href= "{{ url_for('static',filename='styles/cards.css') }}">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- Bootstrap CSS -->
@@ -216,12 +217,7 @@ input:checked + .slider:before {
     cursor: pointer;
 }
 
-.patient_ids_div:hover{
-    /* background-color: #EE8200; */
-    border-width: 4px;
-    border-color: #ff8f07;
-    /* border: 3px; */
-}
+
 
 /* Loading spinner in the patients view page */
 * {
